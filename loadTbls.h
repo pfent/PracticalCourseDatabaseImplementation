@@ -23,7 +23,7 @@ struct WareHouse {
     Numeric<4, 4> w_tax;
     Numeric<12, 2> w_ytd;
 
-    static WareHouse read(std::ifstream& fileStream);
+    static WareHouse read(std::string& line);
 };
 
 struct District {
@@ -39,7 +39,7 @@ struct District {
     Numeric<12, 2> d_ytd;
     Integer d_next_o_id;
 
-    static District read(std::ifstream& fileStream);
+    static District read(std::string& line);
 };
 
 struct Customer {
@@ -65,7 +65,7 @@ struct Customer {
     Numeric<4, 0> c_delivery_cnt;
     Char<500> c_data;
 
-    static Customer read(std::ifstream& fileStream);
+    static Customer read(std::string& line);
 
 };
 
@@ -79,7 +79,7 @@ struct History {
     Numeric<6, 2> h_amount;
     Char<24> h_data;
 
-    static History read(std::ifstream& fileStream);
+    static History read(std::string& line);
 };
 
 struct NewOrder {
@@ -87,7 +87,7 @@ struct NewOrder {
     Integer no_d_id; // primary key
     Integer no_w_id; // primary key
 
-    static NewOrder read(std::ifstream& fileStream);
+    static NewOrder read(std::string& line);
 };
 
 struct Order {
@@ -100,7 +100,7 @@ struct Order {
     Numeric<2, 0> o_ol_cnt;
     Numeric<1, 0> o_all_local;
 
-    static Order read(std::ifstream& fileStream);
+    static Order read(std::string& line);
 };
 
 struct OrderLine {
@@ -115,7 +115,7 @@ struct OrderLine {
     Numeric<6, 2> ol_amount;
     Char<24> ol_dist_info;
 
-    static OrderLine read(std::ifstream& fileStream);
+    static OrderLine read(std::string& line);
 };
 
 struct Item {
@@ -125,7 +125,7 @@ struct Item {
     Numeric<5, 2> i_price;
     Char<50> i_data;
 
-    static Item read(std::ifstream& fileStream);
+    static Item read(std::string& line);
 };
 
 struct Stock {
@@ -147,7 +147,7 @@ struct Stock {
     Numeric<4, 0> s_remote_cnt;
     Char<50> s_data;
 
-    static Stock read(std::ifstream& fileStream);
+    static Stock read(std::ifstream& line);
 };
 
 template<typename T>
@@ -158,8 +158,8 @@ std::vector<T> readTableFromFile(std::string name) {
     if (!fileStream.is_open()) {
         return table;
     }
-    while (!fileStream.eof()) {
-        table.push_back(T::read(fileStream));
+    for (std::string line; std::getline(fileStream, line, '\n');) {
+        table.push_back(T::read(line));
     }
     return table;
 }

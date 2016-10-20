@@ -1,22 +1,17 @@
 #include "loadTbls.h"
 #include <fstream>
 #include <limits>
-#include <iostream>
-#include <typeinfo>
+#include <sstream>
 
 template<typename T>
-void readElement(std::ifstream& fileStream, T& field, char delim = '|') {
+void readElement(std::istream& stream, T& field, char delim = '|') {
     std::string tmp;
-    getline(fileStream, tmp, delim);
-    try {
-        field = T::castString(tmp.c_str(), tmp.length());
-    } catch (const char* exception) {
-        std::cout << exception << std::endl;
-        std::cout << tmp << " is not a valid " << typeid(T).name() << std::endl;
-    }
+    getline(stream, tmp, delim);
+    field = T::castString(tmp.c_str(), tmp.length());
 }
 
-WareHouse WareHouse::read(std::ifstream& fileStream) {
+WareHouse WareHouse::read(std::string& line) {
+    auto fileStream = std::stringstream(line);
     auto tmp = WareHouse {};
     readElement(fileStream, tmp.w_id);
     readElement(fileStream, tmp.w_name);
@@ -31,7 +26,8 @@ WareHouse WareHouse::read(std::ifstream& fileStream) {
     return tmp;
 }
 
-District District::read(std::ifstream& fileStream) {
+District District::read(std::string& line) {
+    auto fileStream = std::stringstream(line);
     auto tmp = District {};
     readElement(fileStream, tmp.d_id);
     readElement(fileStream, tmp.d_w_id);
