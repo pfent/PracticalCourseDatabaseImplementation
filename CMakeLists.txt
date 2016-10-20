@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(practicalcoursedatabaseimplementation)
 
-add_executable(practicalcoursedatabaseimplementation main.cpp Types.cpp neworderrandom.cpp newOrder.cpp)
+add_executable(practicalcoursedatabaseimplementation main.cpp Types.cpp neworderrandom.cpp newOrder.cpp loadTbls.cpp)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wextra -fshow-column -pipe -march=native -fopenmp")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb3 -Og -DDEBUG")

@@ -2,9 +2,15 @@
 #define LOADTBLS_H
 #include "Types.h"
 #include <string>
+#include <vector>
+#include <fstream>
+#include <limits>
 
 template<typename T>
-T readTableFromFile(std::string fileName);
+T readLineFromFile(std::ifstream& fileName);
+
+template<typename T>
+std::vector<T> readTableFromFile(std::string fileName);
 
 struct WareHouse {
     Integer w_id;// primary key
@@ -16,9 +22,11 @@ struct WareHouse {
     Char<9> w_zip;
     Numeric<4, 4> w_tax;
     Numeric<12, 2> w_ytd;
+
+    static WareHouse read(std::ifstream& fileStream);
 };
 
-struct district {
+struct District {
     Integer d_id; // primary key
     Integer d_w_id; // primary key
     Char<10> d_name;
@@ -27,12 +35,14 @@ struct district {
     Char<20> d_city;
     Char<2> d_state;
     Char<9> d_zip;
-    Numeric<4,4> d_tax;
-    Numeric<12,2> d_ytd;
+    Numeric<4, 4> d_tax;
+    Numeric<12, 2> d_ytd;
     Integer d_next_o_id;
+
+    static District read(std::ifstream& fileStream);
 };
 
-struct customer {
+struct Customer {
     Integer c_id; // primary key
     Integer c_d_id; // primary key
     Integer c_w_id; // primary key
@@ -47,44 +57,53 @@ struct customer {
     Char<16> c_phone;
     Timestamp c_since;
     Char<2> c_credit;
-    Numeric<12,2> c_credit_lim;
-    Numeric<4,4> c_discount;
-    Numeric<12,2> c_balance;
-    Numeric<12,2> c_ytd_paymenr;
-    Numeric<4,0> c_payment_cnt;
-    Numeric<4,0> c_delivery_cnt;
+    Numeric<12, 2> c_credit_lim;
+    Numeric<4, 4> c_discount;
+    Numeric<12, 2> c_balance;
+    Numeric<12, 2> c_ytd_paymenr;
+    Numeric<4, 0> c_payment_cnt;
+    Numeric<4, 0> c_delivery_cnt;
     Char<500> c_data;
+
+    static Customer read(std::ifstream& fileStream);
+
 };
 
-struct history {
+struct History {
     Integer h_c_id;
     Integer h_c_d_id;
     Integer h_c_w_id;
     Integer h_d_id;
     Integer h_w_id;
     Timestamp h_date;
-    Numeric<6,2> h_amount;
+    Numeric<6, 2> h_amount;
     Char<24> h_data;
+
+    static History read(std::ifstream& fileStream);
 };
 
-struct neworder {
+struct NewOrder {
     Integer no_o_id; // primary key
     Integer no_d_id; // primary key
     Integer no_w_id; // primary key
+
+    static NewOrder read(std::ifstream& fileStream);
 };
 
-struct order {
+struct Order {
     Integer o_id; // primary key
     Integer o_d_id; // primary key
     Integer o_w_id; // primary key
     Integer o_c_id;
     Timestamp o_entry_d;
     Integer o_carrier_id;
-    Numeric<2,0> o_ol_cnt;
-    Numeric<1,0> o_all_local;
+    Numeric<2, 0> o_ol_cnt;
+    Numeric<1, 0> o_all_local;
+
+    static Order read(std::ifstream& fileStream);
 };
 
-struct orderline {
+struct OrderLine {
     Integer ol_o_id; // primary key
     Integer ol_d_id; // primary key
     Integer ol_w_id; // primary key
@@ -92,23 +111,27 @@ struct orderline {
     Integer ol_i_id;
     Integer ol_supply_w_id;
     Timestamp ol_delivery_d;
-    Numeric<2,0> ol_quantity;
-    Numeric<6,2> ol_amount;
+    Numeric<2, 0> ol_quantity;
+    Numeric<6, 2> ol_amount;
     Char<24> ol_dist_info;
+
+    static OrderLine read(std::ifstream& fileStream);
 };
 
-struct item {
+struct Item {
     Integer i_id; // primary key
     Integer i_im_id;
     Char<24> i_name;
-    Numeric<5,2> i_price;
+    Numeric<5, 2> i_price;
     Char<50> i_data;
+
+    static Item read(std::ifstream& fileStream);
 };
 
-struct stock{
+struct Stock {
     Integer s_i_id; // primary key
     Integer s_w_id; // primary key
-    Numeric<4,0> s_quantity;
+    Numeric<4, 0> s_quantity;
     Char<24> s_dist_01;
     Char<24> s_dist_02;
     Char<24> s_dist_03;
@@ -119,10 +142,27 @@ struct stock{
     Char<24> s_dist_08;
     Char<24> s_dist_09;
     Char<24> s_dist_10;
-    Numeric<8,0> s_ytd;
-    Numeric<4,0> s_order_cnt;
-    Numeric<4,0> s_remote_cnt;
+    Numeric<8, 0> s_ytd;
+    Numeric<4, 0> s_order_cnt;
+    Numeric<4, 0> s_remote_cnt;
     Char<50> s_data;
+
+    static Stock read(std::ifstream& fileStream);
 };
+
+template<typename T>
+std::vector<T> readTableFromFile(std::string name) {
+    auto table = std::vector<T> {};
+    auto fileStream = std::ifstream {};
+    fileStream.open(name);
+    if (!fileStream.is_open()) {
+        return table;
+    }
+    while (!fileStream.eof()) {
+        table.push_back(T::read(fileStream));
+    }
+    return table;
+}
+
 
 #endif // LOADTBLS_H
