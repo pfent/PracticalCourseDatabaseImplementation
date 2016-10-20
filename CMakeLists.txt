@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 2.6)
+project(practicalcoursedatabaseimplementation)
+
+add_executable(practicalcoursedatabaseimplementation main.cpp)
+
+install(TARGETS practicalcoursedatabaseimplementation RUNTIME DESTINATION bin)
