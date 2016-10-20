@@ -147,7 +147,7 @@ struct Stock {
     Numeric<4, 0> s_remote_cnt;
     Char<50> s_data;
 
-    static Stock read(std::ifstream& line);
+    static Stock read(std::string& line);
 };
 
 template<typename T>
