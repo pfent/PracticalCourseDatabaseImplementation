@@ -1,6 +1,8 @@
 #include <iostream>
+#include "neworderrandom.h"
 
-int main(int argc, char **argv) {
+int main() {
     std::cout << "Hello, world!" << std::endl;
+    newOrderRandom();
     return 0;
 }
