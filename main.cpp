@@ -18,7 +18,7 @@ int main() {
     cout << "Read Orders lines: " << database.orders.getView().size() << '\n';
     cout << "Read OrderLines lines: " << database.orderLines.getView().size() << '\n';
     cout << "Read Items lines: " << database.items.getView().size() << '\n';
-    cout << "Read Stocks lines: " << database.stocks.getView().size() << '\n';
+    cout << "Read Stocks lines: " << database.stocks.getView().size() << std::endl;
 
     newOrderRandom();
     return 0;

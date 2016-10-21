@@ -12,9 +12,16 @@ struct Table {
     }
 
     void insert(T&& element) {
+        const auto index = table.size();
         table.push_back(element);
-        //T::index.
+        T::index[element.getKey()] = index;
     }
+
+    void update(T& element) {
+        const auto index = T::index[element.getKey()];
+        table[index] = element;
+    }
+
     void remove(size_t); //TODO
     T& operator[](size_t index) {
         return table[index];
