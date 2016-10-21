@@ -26,6 +26,9 @@ struct WareHouse {
     Numeric<4, 4> w_tax;
     Numeric<12, 2> w_ytd;
 
+    Integer getKey() const {
+        return w_id;
+    }
     static std::unordered_map<Integer, size_t> index;
     static WareHouse read(std::string& line);
 };
@@ -43,6 +46,9 @@ struct District {
     Numeric<12, 2> d_ytd;
     Integer d_next_o_id;
 
+    std::tuple<Integer, Integer> getKey() const {
+        return {d_id, d_w_id};
+    }
     static std::unordered_map<std::tuple<Integer, Integer>, size_t> index;
     static District read(std::string& line);
 };
@@ -70,6 +76,9 @@ struct Customer {
     Numeric<4, 0> c_delivery_cnt;
     Char<500> c_data;
 
+    std::tuple<Integer, Integer, Integer> getKey() const {
+        return {c_id, c_d_id, c_w_id};
+    }
     static std::unordered_map<std::tuple<Integer, Integer, Integer>, size_t> index;
     static Customer read(std::string& line);
 
@@ -93,6 +102,9 @@ struct NewOrder {
     Integer no_d_id; // primary key
     Integer no_w_id; // primary key
 
+    std::tuple<Integer, Integer, Integer> getKey() const {
+        return {no_o_id, no_d_id, no_w_id};
+    }
     static std::unordered_map<std::tuple<Integer, Integer, Integer>, size_t> index;
     static NewOrder read(std::string& line);
 };
@@ -107,6 +119,9 @@ struct Order {
     Numeric<2, 0> o_ol_cnt;
     Numeric<1, 0> o_all_local;
 
+    std::tuple<Integer, Integer, Integer> getKey() const {
+        return {o_id, o_d_id, o_w_id};
+    }
     static std::unordered_map<std::tuple<Integer, Integer, Integer>, size_t> index;
     static Order read(std::string& line);
 };
@@ -123,6 +138,9 @@ struct OrderLine {
     Numeric<6, 2> ol_amount;
     Char<24> ol_dist_info;
 
+    std::tuple<Integer, Integer, Integer, Integer> getKey() const {
+        return {ol_o_id, ol_d_id, ol_w_id, ol_number};
+    }
     static std::unordered_map<std::tuple<Integer, Integer, Integer, Integer>, size_t> index;
     static OrderLine read(std::string& line);
 };
@@ -134,6 +152,9 @@ struct Item {
     Numeric<5, 2> i_price;
     Char<50> i_data;
 
+    Integer getKey() const {
+        return i_id;
+    }
     static std::unordered_map<Integer, size_t> index;
     static Item read(std::string& line);
 };
@@ -157,6 +178,9 @@ struct Stock {
     Numeric<4, 0> s_remote_cnt;
     Char<50> s_data;
 
+    std::tuple<Integer, Integer> getKey() const {
+        return {s_i_id, s_w_id};
+    }
     static std::unordered_map<std::tuple<Integer, Integer>, size_t> index;
     static Stock read(std::string& line);
 };

@@ -31,7 +31,6 @@ WareHouse WareHouse::read(std::string& line) {
     readElement(fileStream, tmp.w_zip);
     readElement(fileStream, tmp.w_tax);
     readElement(fileStream, tmp.w_ytd, '\n'); // last element is not | delimited
-
     return tmp;
 }
 
