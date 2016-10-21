@@ -1,10 +1,13 @@
 #ifndef LOADTBLS_H
 #define LOADTBLS_H
 #include "Types.h"
+#include "hashfunctions.h"
 #include <string>
 #include <vector>
 #include <fstream>
 #include <limits>
+#include <unordered_map>
+#include <tuple>
 
 template<typename T>
 T readLineFromFile(std::ifstream& fileName);
@@ -23,6 +26,7 @@ struct WareHouse {
     Numeric<4, 4> w_tax;
     Numeric<12, 2> w_ytd;
 
+    static std::unordered_map<Integer, size_t> index;
     static WareHouse read(std::string& line);
 };
 
@@ -39,6 +43,7 @@ struct District {
     Numeric<12, 2> d_ytd;
     Integer d_next_o_id;
 
+    static std::unordered_map<std::tuple<Integer, Integer>, size_t> index;
     static District read(std::string& line);
 };
 
@@ -65,6 +70,7 @@ struct Customer {
     Numeric<4, 0> c_delivery_cnt;
     Char<500> c_data;
 
+    static std::unordered_map<std::tuple<Integer, Integer, Integer>, size_t> index;
     static Customer read(std::string& line);
 
 };
@@ -87,6 +93,7 @@ struct NewOrder {
     Integer no_d_id; // primary key
     Integer no_w_id; // primary key
 
+    static std::unordered_map<std::tuple<Integer, Integer, Integer>, size_t> index;
     static NewOrder read(std::string& line);
 };
 
@@ -100,6 +107,7 @@ struct Order {
     Numeric<2, 0> o_ol_cnt;
     Numeric<1, 0> o_all_local;
 
+    static std::unordered_map<std::tuple<Integer, Integer, Integer>, size_t> index;
     static Order read(std::string& line);
 };
 
@@ -115,6 +123,7 @@ struct OrderLine {
     Numeric<6, 2> ol_amount;
     Char<24> ol_dist_info;
 
+    static std::unordered_map<std::tuple<Integer, Integer, Integer, Integer>, size_t> index;
     static OrderLine read(std::string& line);
 };
 
@@ -125,6 +134,7 @@ struct Item {
     Numeric<5, 2> i_price;
     Char<50> i_data;
 
+    static std::unordered_map<Integer, size_t> index;
     static Item read(std::string& line);
 };
 
@@ -147,6 +157,7 @@ struct Stock {
     Numeric<4, 0> s_remote_cnt;
     Char<50> s_data;
 
+    static std::unordered_map<std::tuple<Integer, Integer>, size_t> index;
     static Stock read(std::string& line);
 };
 
@@ -163,6 +174,5 @@ std::vector<T> readTableFromFile(std::string name) {
     }
     return table;
 }
-
 
 #endif // LOADTBLS_H
