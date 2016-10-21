@@ -10,15 +10,6 @@ void readElement(std::istream& stream, T& field, char delim = '|') {
     field = T::castString(tmp.c_str(), tmp.length());
 }
 
-std::unordered_map<Integer, size_t> WareHouse::index{};
-std::unordered_map<std::tuple<Integer, Integer>, size_t> District::index{};
-std::unordered_map<std::tuple<Integer, Integer, Integer>, size_t> Customer::index{};
-std::unordered_map<std::tuple<Integer, Integer, Integer>, size_t> NewOrder::index{};
-std::unordered_map<std::tuple<Integer, Integer, Integer>, size_t> Order::index{};
-std::unordered_map<std::tuple<Integer, Integer, Integer, Integer>, size_t> OrderLine::index{};
-std::unordered_map<Integer, size_t> Item::index{};
-std::unordered_map<std::tuple<Integer, Integer>, size_t> Stock::index{};
-
 WareHouse WareHouse::read(std::string& line) {
     auto fileStream = std::stringstream(line);
     auto tmp = WareHouse {};

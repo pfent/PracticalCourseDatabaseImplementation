@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <chrono>
 #include "neworderrandom.h"
 #include "Database.h"
 
@@ -10,16 +11,22 @@ int main() {
     auto & database = Database::instance();
     database.importDatabaseFromPath("../tbls/"s);
 
-    cout << "Read WareHouses lines: " << database.wareHouses.getView().size() << '\n';
-    cout << "Read Districts lines: " << database.districts.getView().size() << '\n';
-    cout << "Read Customer lines: " << database.customers.getView().size() << '\n';
-    cout << "Read Historys lines: " << database.historys.getView().size() << '\n';
-    cout << "Read NewOrders lines: " << database.newOrders.getView().size() << '\n';
-    cout << "Read Orders lines: " << database.orders.getView().size() << '\n';
-    cout << "Read OrderLines lines: " << database.orderLines.getView().size() << '\n';
-    cout << "Read Items lines: " << database.items.getView().size() << '\n';
-    cout << "Read Stocks lines: " << database.stocks.getView().size() << std::endl;
+    cout << "Imported database:" << '\n';
+    cout << "NewOrders lines: " << database.newOrders.getView().size() << '\n';
+    cout << "Orders lines: " << database.orders.getView().size() << '\n';
+    cout << "OrderLines lines: " << database.orderLines.getView().size() << std::endl;
 
-    newOrderRandom();
+    auto start = std::chrono::steady_clock::now();
+    for(int i = 0; i < 1'000'000; ++i) {
+        newOrderRandom();
+    }
+    auto end = std::chrono::steady_clock::now();
+    auto ms = std::chrono::duration<double, std::milli>(end-start).count();
+    cout << ms << "ms spent" << '\n';
+    cout << 1'000'000 / (ms / 1'000)  << " Transactions per second" << '\n';
+    cout << "Database after a million random Orders" << '\n';
+    cout << "NewOrders lines: " << database.newOrders.getView().size() << '\n';
+    cout << "Orders lines: " << database.orders.getView().size() << '\n';
+    cout << "OrderLines lines: " << database.orderLines.getView().size() << std::endl;
     return 0;
 }

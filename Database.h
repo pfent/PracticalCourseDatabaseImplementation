@@ -7,28 +7,40 @@
 template <typename T>
 struct Table {
     friend struct Database; // the database should directly update the table and indices
+    using KeyType = decltype(((T*)nullptr)->getKey());
     const std::vector<T>& getView() const {
         return table;
     }
 
+    T getElemForKey(KeyType key) {
+        return table[index[key]];
+    }
+
     void insert(T&& element) {
-        const auto index = table.size();
+        const auto i = table.size();
         table.push_back(element);
-        T::index[element.getKey()] = index;
+        index[element.getKey()] = i;
     }
 
     void update(T& element) {
-        const auto index = T::index[element.getKey()];
-        table[index] = element;
+        const auto i = index[element.getKey()];
+        table[i] = element;
     }
 
-    void remove(size_t); //TODO
-    T& operator[](size_t index) {
-        return table[index];
+    void buildIndex() {
+        auto size = table.size();
+        index.reserve(size);
+        for (size_t i = 0; i < size; i++) {
+            index[table[i].getKey()] = i;
+        }
     }
 
-    const T& operator[](size_t index) const {
-        return table[index];
+    T& operator[](size_t i) {
+        return table[i];
+    }
+
+    const T& operator[](size_t i) const {
+        return table[i];
     }
 
     size_t size() const {
@@ -36,6 +48,7 @@ struct Table {
     }
 private:
     std::vector<T> table;
+    std::unordered_map<KeyType, size_t> index;
 };
 
 struct Database {

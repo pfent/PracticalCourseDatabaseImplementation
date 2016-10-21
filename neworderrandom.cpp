@@ -3,6 +3,7 @@
 #include "newOrder.h"
 #include "loadTbls.h"
 
+namespace  {
 const int32_t warehouses=5;
 
 int32_t urand(int32_t min,int32_t max) {
@@ -20,6 +21,7 @@ int32_t urandexcept(int32_t min,int32_t max,int32_t v) {
 
 int32_t nurand(int32_t A,int32_t x,int32_t y) {
    return ((((random()%A)|(random()%(y-x+1)+x))+42)%(y-x+1))+x;
+}
 }
 
 void newOrderRandom() {
