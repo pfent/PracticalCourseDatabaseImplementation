@@ -3,6 +3,11 @@
 #include "neworderrandom.h"
 #include "Database.h"
 
+#ifdef NDEBUG
+#undef assert
+#define assert(X) if(!(X)) throw std::runtime_error("\nassertion failed:\n" #X);
+#endif
+
 using namespace std;
 
 template <typename T, typename Func>
@@ -28,6 +33,17 @@ int main() {
     }
 
     testIndices(db);
+
+    for (const auto& district : db.districts.getView()) {
+        auto districtLine = db.districts.getElemForKey(district.getKey());
+        const auto o_id = districtLine.d_next_o_id;
+        districtLine.d_next_o_id = o_id + 1;
+        db.districts.update(districtLine);
+
+        const auto districtLine2 = db.districts.getElemForKey(district.getKey());
+        assert(districtLine.d_id == districtLine2.d_id &&
+               districtLine.d_next_o_id == districtLine2.d_next_o_id);
+    }
 
     cout << "Everything looking good" << endl;
 

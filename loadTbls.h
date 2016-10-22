@@ -186,7 +186,7 @@ std::vector<T> readTableFromFile(std::string name) {
     auto fileStream = std::ifstream {};
     fileStream.open(name);
     if (!fileStream.is_open()) {
-        return table;
+        throw "no file found";
     }
     for (std::string line; std::getline(fileStream, line, '\n');) {
         table.push_back(T::read(line));

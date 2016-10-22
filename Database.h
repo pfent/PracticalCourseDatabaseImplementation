@@ -28,7 +28,7 @@ struct Table {
     }
 
     void buildIndex() {
-        auto size = table.size();
+        const auto size = table.size();
         index.reserve(size);
         for (size_t i = 0; i < size; i++) {
             index[table[i].getKey()] = i;
@@ -36,10 +36,6 @@ struct Table {
     }
 
     T& operator[](size_t i) {
-        return table[i];
-    }
-
-    const T& operator[](size_t i) const {
         return table[i];
     }
 

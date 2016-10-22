@@ -6,7 +6,7 @@
 
 using namespace std;
 
-constexpr auto iterations = 30;
+constexpr auto iterations = 1'000'000;
 
 int main() {
     using namespace string_literals;
