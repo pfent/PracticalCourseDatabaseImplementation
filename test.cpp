@@ -11,7 +11,7 @@
 using namespace std;
 
 template <typename T, typename Func>
-void testIndexIntegrity(Table<T> table, Func&& assertion) {
+void testIndexIntegrity(T table, Func&& assertion) {
     for (auto& elem : table.getView()) {
         auto key = elem.getKey();
         auto elemTest = table.getElemForKey(key);

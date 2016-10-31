@@ -27,5 +27,6 @@ struct Schema {
     };
     std::vector<Schema::Relation> relations;
     std::string toString() const;
+    std::string toCpp() const;
 };
 #endif

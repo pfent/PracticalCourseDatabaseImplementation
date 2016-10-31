@@ -6,7 +6,11 @@
 
 using namespace std;
 
+#ifdef NDEBUG
 constexpr auto iterations = 1'000'000;
+#else
+constexpr auto iterations = 10'000;
+#endif //NDEBUG
 
 int main() {
     using namespace string_literals;
@@ -14,9 +18,9 @@ int main() {
     db.importDatabaseFromPath("../tbls/"s);
 
     cout << "Imported database:" << '\n';
-    cout << "NewOrders lines: " << db.newOrders.getView().size() << '\n';
-    cout << "Orders lines: " << db.orders.getView().size() << '\n';
-    cout << "OrderLines lines: " << db.orderLines.getView().size() << std::endl;
+    cout << "NewOrders lines: " << db.neworder.size << '\n';
+    cout << "Orders lines: " << db.order.size << '\n';
+    cout << "OrderLines lines: " << db.orderline.size << std::endl;
 
     auto start = std::chrono::steady_clock::now();
     for (int i = 0; i < iterations; ++i) {
@@ -27,9 +31,9 @@ int main() {
     cout << ms << "ms spent" << '\n';
     cout << iterations / (ms / 1'000)  << " Transactions per second" << '\n';
     cout << "Database after a million random Orders" << '\n';
-    cout << "NewOrders lines: " << db.newOrders.getView().size() << '\n';
-    cout << "Orders lines: " << db.orders.getView().size() << '\n';
-    cout << "OrderLines lines: " << db.orderLines.getView().size() << std::endl;
+    cout << "NewOrders lines: " << db.neworder.size << '\n';
+    cout << "Orders lines: " << db.order.size << '\n';
+    cout << "OrderLines lines: " << db.orderline.size << std::endl;
 
     return 0;
 }

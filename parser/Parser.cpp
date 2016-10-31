@@ -177,18 +177,9 @@ void Parser::nextToken(unsigned line, const std::string& token, Schema& schema) 
         else
             throw ParserError(line, "Expected ';', found '" + token + "'");
         break;
-
-
-
-
-
-
-
-
     case State::Table:
         if (isIdentifier(tok)) {
             state = State::TableName;
-            // TODO strip "
             schema.relations.push_back(Schema::Relation(token));
         } else {
             throw ParserError(line, "Expected TableName, found '" + token + "'");
