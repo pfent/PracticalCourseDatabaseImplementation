@@ -2,6 +2,7 @@
 #include <string>
 #include <chrono>
 #include "neworderrandom.h"
+#include "tpc_c.h"
 #include "Database.h"
 
 using namespace std;
@@ -24,7 +25,7 @@ int main() {
 
     auto start = std::chrono::steady_clock::now();
     for (int i = 0; i < iterations; ++i) {
-        newOrderRandom();
+        oltp(Timestamp(0));
     }
     auto end = std::chrono::steady_clock::now();
     auto ms = std::chrono::duration<double, std::milli>(end - start).count();

@@ -50,4 +50,12 @@ struct hash<Integer> {
         return tt.hash();
     }
 };
+
+template<unsigned L>
+struct hash<Char<L>> {
+    size_t
+    operator()(const Char<L>& tt) const {
+        return tt.hash();
+    }
+};
 }

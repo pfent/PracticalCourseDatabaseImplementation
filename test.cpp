@@ -31,7 +31,7 @@ int main() {
     testIndices(db);
 
     for (int i = 0; i < 1'000'000; ++i) {
-        newOrderRandom();
+        newOrderRandom(Timestamp(0));
     }
 
     testIndices(db);

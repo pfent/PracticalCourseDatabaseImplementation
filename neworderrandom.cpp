@@ -1,6 +1,6 @@
 #include <cstdint>
 #include "Types.h"
-#include "newOrder.h"
+#include "tpc_c.h"
 
 namespace  {
 const int32_t warehouses = 5;
@@ -23,8 +23,7 @@ int32_t nurand(int32_t A, int32_t x, int32_t y) {
 }
 }
 
-void newOrderRandom() {
-    Timestamp now(0);
+void newOrderRandom(Timestamp now) {
     int32_t w_id = urand(1, warehouses);
     int32_t d_id = urand(1, 10);
     int32_t c_id = nurand(1023, 1, 3000);
@@ -42,4 +41,17 @@ void newOrderRandom() {
     }
 
     newOrder(w_id, d_id, c_id, ol_cnt, supware, itemid, qty, now);
+}
+
+void deliveryRandom(Timestamp now) {
+   delivery(urand(1,warehouses),urand(1,10),now);
+}
+
+void oltp(Timestamp now) {
+   int rnd=urand(1,100);
+   if (rnd<=10) {
+      deliveryRandom(now);
+   } else {
+      newOrderRandom(now);
+   }
 }
