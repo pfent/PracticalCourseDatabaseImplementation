@@ -12,14 +12,16 @@ using namespace std;
 
 template <typename T, typename Func>
 void testIndexIntegrity(T table, Func&& assertion) {
-    for (auto& elem : table.getView()) {
+    for (size_t i = 0; i < table.size; ++i) {
+        auto elem = table.getRow(i);
         auto key = elem.getKey();
-        auto elemTest = table.getElemForKey(key);
+        auto elemTest = table.getRowForKey(key);
         assert(assertion(elem, elemTest));
     }
 }
 
 void testIndices(Database& db);
+void testUpdate(Database& db);
 
 int main() {
     using namespace string_literals;
@@ -34,16 +36,7 @@ int main() {
 
     testIndices(db);
 
-    for (const auto& district : db.districts.getView()) {
-        auto districtLine = db.districts.getElemForKey(district.getKey());
-        const auto o_id = districtLine.d_next_o_id;
-        districtLine.d_next_o_id = o_id + 1;
-        db.districts.update(districtLine);
-
-        const auto districtLine2 = db.districts.getElemForKey(district.getKey());
-        assert(districtLine.d_id == districtLine2.d_id &&
-               districtLine.d_next_o_id == districtLine2.d_next_o_id);
-    }
+    testUpdate(db);
 
     cout << "Everything looking good" << endl;
 
@@ -51,7 +44,7 @@ int main() {
 }
 
 void testIndices(Database& db) {
-    testIndexIntegrity(db.wareHouses, [](auto a, auto b) {
+    testIndexIntegrity(db.warehouse, [](auto a, auto b) {
         return
             a.w_id == b.w_id &&
             a.w_name == b.w_name &&
@@ -63,7 +56,7 @@ void testIndices(Database& db) {
             a.w_tax == b.w_tax &&
             a.w_ytd == b.w_ytd;
     });
-    testIndexIntegrity(db.districts, [](auto a, auto b) {
+    testIndexIntegrity(db.district, [](auto a, auto b) {
         return
             a.d_id == b.d_id &&
             a.d_w_id == b.d_w_id &&
@@ -77,7 +70,7 @@ void testIndices(Database& db) {
             a.d_ytd == b.d_ytd &&
             a.d_next_o_id == b.d_next_o_id;
     });
-    testIndexIntegrity(db.customers, [](auto a, auto b) {
+    testIndexIntegrity(db.customer, [](auto a, auto b) {
         return
             a.c_id == b.c_id &&
             a.c_d_id == b.c_d_id &&
@@ -101,13 +94,13 @@ void testIndices(Database& db) {
             a.c_delivery_cnt == b.c_delivery_cnt &&
             a.c_data == b.c_data;
     });
-    testIndexIntegrity(db.newOrders, [](auto a, auto b) {
+    testIndexIntegrity(db.neworder, [](auto a, auto b) {
         return
             a.no_d_id == b.no_d_id &&
             a.no_o_id == b.no_o_id &&
             a.no_w_id == b.no_w_id;
     });
-    testIndexIntegrity(db.orders, [](auto a, auto b) {
+    testIndexIntegrity(db.order, [](auto a, auto b) {
         return
             a.o_id == b.o_id &&
             a.o_d_id == b.o_d_id &&
@@ -120,7 +113,7 @@ void testIndices(Database& db) {
 
 
     });
-    testIndexIntegrity(db.orderLines, [](auto a, auto b) {
+    testIndexIntegrity(db.orderline, [](auto a, auto b) {
         return
             a.ol_o_id == b.ol_o_id &&
             a.ol_d_id == b.ol_d_id &&
@@ -133,7 +126,7 @@ void testIndices(Database& db) {
             a.ol_amount == b.ol_amount &&
             a.ol_dist_info == b.ol_dist_info;
     });
-    testIndexIntegrity(db.items, [](auto a, auto b) {
+    testIndexIntegrity(db.item, [](auto a, auto b) {
         return
             a.i_id == b.i_id &&
             a.i_im_id == b.i_im_id &&
@@ -142,7 +135,7 @@ void testIndices(Database& db) {
             a.i_data == b.i_data;
 
     });
-    testIndexIntegrity(db.stocks, [](auto a, auto b) {
+    testIndexIntegrity(db.stock, [](auto a, auto b) {
         return
             a.s_i_id == b.s_i_id &&
             a.s_w_id == b.s_w_id &&
@@ -163,4 +156,18 @@ void testIndices(Database& db) {
             a.s_data == b.s_data;
     });
 }
+
+void testUpdate(Database& db) {
+    for (size_t i = 0; i < db.district.size; ++i) {
+        auto districtLine = db.district.getRow(i);
+        const auto o_id = districtLine.d_next_o_id;
+        districtLine.d_next_o_id = o_id + 1;
+        db.district.update(districtLine);
+
+        const auto districtLine2 = db.district.getRow(i);
+        assert(districtLine.d_id == districtLine2.d_id &&
+               districtLine.d_next_o_id == districtLine2.d_next_o_id);
+    }
+}
+
 
