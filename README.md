@@ -27,10 +27,10 @@ Imported database:
 NewOrders lines: 45000
 Orders lines: 150000
 OrderLines lines: 1425564
-14178.2ms spent
-70530.8 Transactions per second
+37484.1ms spent
+26678 Transactions per second
 Database after a million random Orders
-NewOrders lines: 1045000
-Orders lines: 1150000
-OrderLines lines: 11426900
+NewOrders lines: 944992
+Orders lines: 1049992
+OrderLines lines: 10431287
 ```

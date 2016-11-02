@@ -72,10 +72,8 @@ void newOrder(int32_t w_id, int32_t d_id, int32_t c_id, int32_t items, int32_t s
 void delivery(int32_t w_id, int32_t o_carrier_id, Timestamp datetime) {
     (void) w_id; (void) o_carrier_id; (void) datetime;
     auto& db = Database::instance();
-//     forsequence (d_id between 1 and 10) {
     for (int d_id = 1; d_id < 10; ++d_id) {
-//     select min(no_o_id) as o_id from neworder where no_w_id=w_id and no_d_id=d_id order by no_o_id else { continue; } -- ignore this district if no row found
-        const auto minIndex = db.neworder.primaryTreeIndex.lower_bound({w_id, d_id, 0})->second;
+        const auto minIndex = db.neworder.primaryTreeIndex.lower_bound({w_id, d_id, INT32_MIN})->second;
         //auto max = db.neworder.primaryTreeIndex.lower_bound({w_id, d_id, INT32_MAX});
         const auto minRow = db.neworder.getRow(minIndex);
         if (!(minRow.no_w_id == w_id && minRow.no_d_id == d_id)) {
@@ -83,38 +81,27 @@ void delivery(int32_t w_id, int32_t o_carrier_id, Timestamp datetime) {
         }
         const auto o_id = minRow.no_o_id;
 
-//     delete from neworder where no_w_id=w_id and no_d_id=d_id and no_o_id=o_id;
         db.neworder.deleteRow([&] {
             return db.neworder.primaryHashIndex[{w_id, d_id, o_id}];
         }());
 
-//     select o_ol_cnt,o_c_id from "order" o where o_w_id=w_id and o_d_id=d_id and o.o_id=o_id;
         auto o = db.order.getRowForKey({w_id, d_id, o_id});
         const auto o_ol_cnt = o.o_ol_cnt;
         const auto o_c_id = o.o_c_id;
 
-//     update "order" set o_carrier_id=o_carrier_id where o_w_id=w_id and o_d_id=d_id and "order".o_id=o_id;
         o.o_carrier_id = o_carrier_id;
         db.order.update(o);
 
-//     var numeric(6,2) ol_total=0;
         Numeric<6, 2> ol_total = 0;
-//     forsequence (ol_number between 1 and o_ol_cnt) {
-        for (int ol_number = 1; Numeric<2,0>(ol_number) < o_ol_cnt; ol_number += 1) {
-//         select ol_amount from orderline where ol_w_id=w_id and ol_d_id=d_id and ol_o_id=o_id and orderline.ol_number=ol_number;
+        for (int ol_number = 1; Numeric<2, 0>(ol_number) < o_ol_cnt; ol_number += 1) {
             auto ol = db.orderline.getRowForKey({w_id, d_id, o_id, ol_number});
             const auto ol_amount = ol.ol_amount;
-//         ol_total=ol_total+ol_amount;
             ol_total = ol_total + ol_amount;
-//         update orderline set ol_delivery_d=datetime where ol_w_id=w_id and ol_d_id=d_id and ol_o_id=o_id and orderline.ol_number=ol_number;
             ol.ol_delivery_d = datetime;
             db.orderline.update(ol);
-//     }
         }
 
-//     update customer set c_balance=c_balance+ol_total where c_w_id=w_id and c_d_id=d_id and c_id=o_c_id;
         auto customer = db.customer.getRowForKey({w_id, d_id, o_c_id});
         customer.c_balance = customer.c_balance + ol_total.castS<12>();
-//     }
     }
 }

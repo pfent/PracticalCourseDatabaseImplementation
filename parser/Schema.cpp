@@ -200,10 +200,30 @@ std::string Schema::toCpp() const {
             << "        }\n"
             << "\n";
         out << "        void update(size_t i, const Row& elem) {\n";
+        // update indices. We don't allow the primary key to change, so it is ok to ignore the primary key
+        for (const auto& index : rel.indices) {
+            out << "            {\n"
+                << "                auto range = " << index.name << ".equal_range({";
+            std::for_each(index.keys.begin(), index.keys.end() - 1, [&](unsigned fieldId) {
+                out << "elem." << rel.attributes[fieldId].name << ", ";
+            });
+            out << "elem." << rel.attributes[index.keys.back()].name << "});\n"
+                << "                for (auto it = range.first; it != range.second; ++it) {\n"
+                << "                    if (it-> second == i) {\n"
+                << "                        " << index.name << ".erase(it->first);\n"
+                << "                        break;\n"
+                << "                    }\n"
+                << "                }\n";
+            out << "                " << index.name << ".insert({{";
+            std::for_each(index.keys.begin(), index.keys.end() - 1, [&](unsigned fieldId) {
+                out << "elem." << rel.attributes[fieldId].name << ", ";
+            });
+            out << "elem." << rel.attributes[index.keys.back()].name << "}, i});\n"
+                << "            }\n";
+        }
         for (const auto& attr : rel.attributes) {
             out << "            " << attr.name  << "[i] = elem." << attr.name << ";\n";
         }
-        // TODO update indices. We don't allow the primary key to change, so this is ok
         out << "        }\n"
             << "\n";
         if (hasPrimaryKey) {
