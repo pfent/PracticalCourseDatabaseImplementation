@@ -47,7 +47,6 @@ static std::string cppType(const Schema::Relation::Attribute& attr) {
 
 static std::string toCppName(const std::string& name) {
     std::string res;
-    // TODO strip "
     if (name[0] == '\"' && name[name.size() - 1] == '\"') {
         res = name.substr(1, name.size() - 2);
     } else {
@@ -158,7 +157,7 @@ std::string Schema::toCpp() const {
             out << "        std::unordered_map<KeyType, size_t> primaryHashIndex;\n";
             out << "        std::map<KeyType, size_t> primaryTreeIndex;\n";
         }
-        for (auto& index : rel.indices) {
+        for (const auto& index : rel.indices) {
             out << "        std::unordered_multimap<std::tuple<";
             std::for_each(index.keys.begin(), index.keys.end() - 1, [&](unsigned fieldId) {
                 out << cppType(rel.attributes[fieldId]) << ", ";
@@ -173,7 +172,8 @@ std::string Schema::toCpp() const {
             out << "" << attr.name << "[i], ";
         });
         out << rel.attributes.back().name << "[i]};\n"
-            << "        }\n";
+            << "        }\n"
+            << "\n";
         if (hasPrimaryKey) {
             out << "        Row getRowForKey(const KeyType& key) {\n"
                 << "            return getRow(primaryHashIndex[key]);\n"
@@ -215,11 +215,26 @@ std::string Schema::toCpp() const {
         }
         out << "        void deleteRow(size_t i) {\n";
         if (hasPrimaryKey) {
-            out << "            const auto key = getRow(i).getKey();\n";
+            out << "            const auto row = getRow(i);\n";
+            out << "            const auto key = row.getKey();\n";
             out << "            primaryHashIndex.erase(key);\n";
             out << "            primaryTreeIndex.erase(key);\n";
         }
-        // TODO update indices (if any)
+        for (const auto& index : rel.indices) {
+            out << "            {\n"
+                << "                auto range = " << index.name << ".equal_range({";
+            std::for_each(index.keys.begin(), index.keys.end() - 1, [&](unsigned fieldId) {
+                out << "row." << rel.attributes[fieldId].name << ", ";
+            });
+            out << "row." << rel.attributes[index.keys.back()].name << "});\n"
+                << "                for (auto it = range.first; it != range.second; ++it) {\n"
+                << "                    if (it-> second == i) {\n"
+                << "                        " << index.name << ".erase(it->first);\n"
+                << "                        break;\n"
+                << "                    }\n"
+                << "                }\n"
+                << "            }\n";
+        }
         for (const auto& attr : rel.attributes) {
             out << "            " << attr.name  << ".erase(" << attr.name << ".begin() + i);\n";
         }

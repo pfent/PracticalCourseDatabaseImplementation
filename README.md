@@ -5,6 +5,9 @@
 mkdir buildRelease
 cd buildRelease
 cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_BUILD_TYPE=Release ..
+cd parser
+make parser && ./parser ../../schema.sql > ../../Database.h
+cd ..
 make
 ```
 
