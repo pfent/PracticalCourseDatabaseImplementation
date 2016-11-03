@@ -70,7 +70,6 @@ void newOrder(int32_t w_id, int32_t d_id, int32_t c_id, int32_t items, int32_t s
 }
 
 void delivery(int32_t w_id, int32_t o_carrier_id, Timestamp datetime) {
-    (void) w_id; (void) o_carrier_id; (void) datetime;
     auto& db = Database::instance();
     for (int d_id = 1; d_id < 10; ++d_id) {
         const auto minIndex = db.neworder.primaryTreeIndex.lower_bound({w_id, d_id, INT32_MIN})->second;

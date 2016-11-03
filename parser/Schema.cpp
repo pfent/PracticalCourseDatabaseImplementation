@@ -237,8 +237,12 @@ std::string Schema::toCpp() const {
         if (hasPrimaryKey) {
             out << "            const auto row = getRow(i);\n";
             out << "            const auto key = row.getKey();\n";
+            out << "            const auto lastRow = getRow(size - 1);\n";
+            out << "            const auto lastKey = lastRow.getKey();\n";
             out << "            primaryHashIndex.erase(key);\n";
             out << "            primaryTreeIndex.erase(key);\n";
+            out << "            primaryHashIndex[lastKey] = i;\n";
+            out << "            primaryTreeIndex[lastKey] = i;\n";
         }
         for (const auto& index : rel.indices) {
             out << "            {\n"
@@ -248,16 +252,31 @@ std::string Schema::toCpp() const {
             });
             out << "row." << rel.attributes[index.keys.back()].name << "});\n"
                 << "                for (auto it = range.first; it != range.second; ++it) {\n"
-                << "                    if (it-> second == i) {\n"
+                << "                    if (it->second == i) {\n"
                 << "                        " << index.name << ".erase(it->first);\n"
+                << "                        break;\n"
+                << "                    }\n"
+                << "                }\n"
+                << "            }\n";
+            out << "            {\n"
+                << "                auto range = " << index.name << ".equal_range({";
+            std::for_each(index.keys.begin(), index.keys.end() - 1, [&](unsigned fieldId) {
+                out << "lastRow." << rel.attributes[fieldId].name << ", ";
+            });
+            out << "lastRow." << rel.attributes[index.keys.back()].name << "});\n"
+                << "                for (auto it = range.first; it != range.second; ++it) {\n"
+                << "                    if (it->second == size - 1) {\n"
+                << "                        it->second = i;\n"
                 << "                        break;\n"
                 << "                    }\n"
                 << "                }\n"
                 << "            }\n";
         }
         for (const auto& attr : rel.attributes) {
-            out << "            " << attr.name  << ".erase(" << attr.name << ".begin() + i);\n";
+            out << "            std::swap("<< attr.name << "[i], " << attr.name << "[size - 1]);\n";
+            out << "            "<< attr.name << ".pop_back();\n";
         }
+        out << "            size--;\n";
         out << "        }\n"
             << "\n";
         out << "        static Row read(std::string& line) {\n"
