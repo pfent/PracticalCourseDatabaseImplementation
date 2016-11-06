@@ -37,7 +37,7 @@ int main() {
     cout << "Imported database:" << '\n';
     cout << "NewOrders lines: " << db.neworder.size << '\n';
     cout << "Orders lines: " << db.order.size << '\n';
-    cout << "OrderLines lines: " << db.orderline.size << std::endl;
+    cout << "OrderLines lines: " << db.orderline.size << endl;
 
     struct sigaction sa;
     sigemptyset(&sa.sa_mask);
@@ -45,13 +45,14 @@ int main() {
     sa.sa_handler = SIGCHLD_handler;
     sigaction(SIGCHLD, &sa, NULL);
 
-    //    cout << "Press enter to continue …" << std::endl;
+    //    cout << "Press enter to continue …" << endl;
     //    cin.ignore();
 
-    cout << "Running transactions …" << std::endl;
-    const auto start = std::chrono::steady_clock::now();
+    cout << "Running transactions …" << endl;
+    const auto start = chrono::steady_clock::now();
     for (int i = 0; i < iterations; ++i) {
         pid_t pid = ~0;
+        const auto start = chrono::steady_clock::now();
         if (!childRunning) {
             childRunning = true;
             pid = fork();
@@ -59,12 +60,15 @@ int main() {
         if (pid) { // parent
             oltp(Timestamp(0));
         } else { // forked child
+            const auto end = chrono::steady_clock::now();
+            cout << "fork took " << chrono::duration<double, milli>(end - start).count() << "ms" << endl;
             runQuery();
             return 0; // child is finished
         }
     }
-    const auto end = std::chrono::steady_clock::now();
-    const auto s = std::chrono::duration<double>(end - start).count();
+    const auto end = chrono::steady_clock::now();
+    while(childRunning); // wait for child finishing
+    const auto s = chrono::duration<double>(end - start).count();
 
     cout << s << "s spent" << '\n';
     cout << iterations / s  << " Transactions per second" << '\n';
@@ -72,21 +76,21 @@ int main() {
     cout << "Database after a million random Orders" << '\n';
     cout << "NewOrders lines: " << db.neworder.size << '\n';
     cout << "Orders lines: " << db.order.size << '\n';
-    cout << "OrderLines lines: " << db.orderline.size << std::endl;
+    cout << "OrderLines lines: " << db.orderline.size << endl;
 
     return 0;
 }
 
 static void runQuery() {
     double executionTime = 0;
-    Numeric<12,4> printSum;
+    Numeric<12, 4> printSum;
     constexpr int iterations = 10;
     for (int i = 0; i < iterations; ++i) {
-        const auto start = std::chrono::steady_clock::now();
+        const auto start = chrono::steady_clock::now();
         printSum = joinQuery();
-        const auto end = std::chrono::steady_clock::now();
-        executionTime += std::chrono::duration<double, std::milli>(end - start).count();
+        const auto end = chrono::steady_clock::now();
+        executionTime += chrono::duration<double, milli>(end - start).count();
     }
-    cout << "sum = " << printSum << std::endl;
-    cout << "query took avg. " << executionTime / iterations << "ms" << std::endl;
+    cout << "sum = " << printSum << endl;
+    cout << "query took avg. " << executionTime / iterations << "ms" << endl;
 }
