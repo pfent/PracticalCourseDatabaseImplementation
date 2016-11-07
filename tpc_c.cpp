@@ -14,7 +14,7 @@ void newOrder(int32_t w_id, int32_t d_id, int32_t c_id, int32_t items, int32_t s
     const auto districtIndex = db.district.primaryHashIndex[ {w_id, d_id}];
     const auto o_id = db.district.d_next_o_id[districtIndex];
     const auto d_tax = db.district.d_tax[districtIndex];
-    db.district.d_next_o_id[districtIndex] = o_id + 1;
+    db.district.d_next_o_id[districtIndex] = o_id + 1;  // directly update district, as there are no indices
 
     const auto all_local = all_of(supware, supware + items, [&](int32_t item) {
         return w_id == item;
@@ -37,7 +37,7 @@ void newOrder(int32_t w_id, int32_t d_id, int32_t c_id, int32_t items, int32_t s
             case  5: return db.stock.s_dist_05[stockIndex];
             case  6: return db.stock.s_dist_06[stockIndex];
             case  7: return db.stock.s_dist_07[stockIndex];
-            case  8: return db.stock.s_dist_01[stockIndex];
+            case  8: return db.stock.s_dist_08[stockIndex];
             case  9: return db.stock.s_dist_09[stockIndex];
             case 10: return db.stock.s_dist_10[stockIndex];
             }
@@ -50,11 +50,11 @@ void newOrder(int32_t w_id, int32_t d_id, int32_t c_id, int32_t items, int32_t s
             } else {
                 updateValue += 91 - qty[index];
             }
-            db.stock.s_quantity[toUpdate] = updateValue;
+            db.stock.s_quantity[toUpdate] = updateValue; // directly update stock, as there are no indices
         }
         {
             const auto toUpdate = db.stock.primaryHashIndex[ {w_id, itemid[index]}];
-            if (supware[index] != w_id) {
+            if (supware[index] != w_id) { // directly update stock, as there are no indices
                 db.stock.s_remote_cnt[toUpdate] = s_remote_cnt + 1;
             } else {
                 db.stock.s_order_cnt[toUpdate] = s_order_cnt + 1;
@@ -87,17 +87,21 @@ void delivery(int32_t w_id, int32_t o_carrier_id, Timestamp datetime) {
         const auto o_ol_cnt = db.order.o_ol_cnt[orderIndex];
         const auto o_c_id = db.order.o_c_id[orderIndex];
 
+        // directly update district.
+        // There is an index on o_w_id, o_d_id, o_c_id, o_id, but we are safe, as we only update o_carrier_id
         db.order.o_carrier_id[orderIndex] = o_carrier_id;
 
         Numeric<6, 2> ol_total = 0;
         for (int ol_number = 1; Numeric<2, 0>(ol_number) < o_ol_cnt; ol_number += 1) {
-            auto olIndex = db.orderline.primaryHashIndex[ {w_id, d_id, o_id, ol_number}];
+            const auto olIndex = db.orderline.primaryHashIndex[ {w_id, d_id, o_id, ol_number}];
             const auto ol_amount = db.orderline.ol_amount[olIndex];
             ol_total = ol_total + ol_amount;
-            db.orderline.ol_delivery_d[olIndex] = datetime;
+            db.orderline.ol_delivery_d[olIndex] = datetime; // directly update orderline, as there are no indices
         }
 
-        auto customerIndex = db.customer.primaryHashIndex[ {w_id, d_id, o_c_id}];
+        const auto customerIndex = db.customer.primaryHashIndex[ {w_id, d_id, o_c_id}];
+        // directly update stock
+        //  There is an index on c_w_id, c_d_id, c_last, c_first, but we are safe, as we only update c_balance
         db.customer.c_balance[customerIndex] = db.customer.c_balance[customerIndex] + ol_total.castS<12>();
     }
 }

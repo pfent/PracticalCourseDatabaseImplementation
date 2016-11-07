@@ -60,7 +60,8 @@ void oltp(Timestamp now) {
 Numeric<12, 4> joinQuery() {
     auto& db = Database::instance();
     auto customerOrderHashTbl = std::unordered_map<std::tuple<Integer, Integer, Integer> /*c_w_id, c_d_id, c_id*/, size_t> {};
-    customerOrderHashTbl.reserve(db.customer.size / 7); // avoid rehashing, "like 'B%'" should have a selectivity of ~1 in 26 but in our dataset it's ~1/7
+    const auto customerOrderHashTblExpectedSize = db.customer.size * (0.12801);
+    customerOrderHashTbl.reserve(customerOrderHashTblExpectedSize); // avoid rehashing, "like 'B%'" should have a selectivity of ~1 in 26 but in our dataset it's ~1/8
     for (size_t i = 0; i < db.customer.size; ++i) {
         if (db.customer.c_last[i].value[0] == 'B') { // like B%
             customerOrderHashTbl[ {db.customer.c_w_id[i], db.customer.c_d_id[i], db.customer.c_id[i]}] = i;
@@ -68,7 +69,8 @@ Numeric<12, 4> joinQuery() {
     }
 
     auto customerOrderOrderlineHashTbl = std::unordered_map<std::tuple<Integer, Integer, Integer> /*ol_w_id, ol_d_id, ol_o_id*/, std::tuple<size_t, size_t>> {};
-    customerOrderOrderlineHashTbl.reserve(customerOrderHashTbl.size() * 8); // avoid rehashing, orderline should have a selectivity of around 8 in our dataset
+    const auto customerOrderOrderlineHashTblExpectedSize = customerOrderHashTbl.size() * db.order.size * 0.0000086;
+    customerOrderOrderlineHashTbl.reserve(customerOrderOrderlineHashTblExpectedSize); // avoid rehashing, orderline has a selectivity of around 1/2^17 in our dataset
     for (size_t i = 0; i < db.order.size; ++i) {
         const auto pos = customerOrderHashTbl.find({db.order.o_w_id[i], db.order.o_d_id[i], db.order.o_c_id[i]});
 

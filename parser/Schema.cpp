@@ -118,8 +118,7 @@ std::string Schema::toCpp() const {
         << "        field = T::castString(tmp.c_str(), tmp.length());\n"
         << "    }\n\n";
     for (const auto& rel : relations) {
-        out << "    struct " << toCppName(rel.name) << " {\n"
-            << "        friend struct Database;\n";
+        out << "    struct " << toCppName(rel.name) << " {\n";
         // Attributes
         for (const auto& attr : rel.attributes) {
             out << "        std::vector<" << cppType(attr)  << "> " << attr.name << ";\n";
