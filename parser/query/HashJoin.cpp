@@ -17,12 +17,30 @@ string HashJoin::consume(Operator &what) {
     stringstream res;
 
     if (&what == &left) {
-        res << "//TODO: store t in HT;\n";
-        res << "hashTable" << uuid << ".insert();";
+        res << "hashTable" << uuid << ".emplace(";
+        res << "{";
+        for_each(conditions.begin(), conditions.end() - 1, [&](auto &condition) {
+            res << get<0>(condition)->getName() << ", ";
+        });
+        res << get<0>(conditions.back())->getName();
+        res << "}, {";
+        auto leftResult = getRequiredFor(left.getProduced());
+        for_each(leftResult.begin(), leftResult.end() - 1, [&](auto &r) {
+            res << r->getName() << ",";
+        });
+        res << leftResult.back()->getName();
+        res << "}";
+        res << ");\n";
     } else if (&what == &right) {
-        // get<1>(condition)->getType()
-        res << "//TODO for tc in HT.lookup\n";
+        res << "auto range = hashTable" << uuid << ".equal_range({";
+        for_each(conditions.begin(), conditions.end() - 1, [&](auto &condition) {
+            res << get<1>(condition)->getName() << ", ";
+        });
+        res << get<1>(conditions.back())->getName();
+        res << "});\n"
+                "for_each(range.first, range.second, [&]{";
         res << consumer->consume(*this);
+        res << "});\n";
     }
 
     return res.str();

@@ -17,10 +17,10 @@ TableScan::~TableScan() {
 
 string TableScan::produce() {
     stringstream res;
-    res << "for (size_t i = 0; i < db." << relation.name << ".size; ++i) {\n";
+    res << "for (size_t i = 0; i < db." << Schema::toCppName(relation.name) << ".size; ++i) {\n";
 
     for (const auto &required : getRequired()) {
-        res << "const auto " << relation.name << "_" << required->attribute.name << " = db." << required->relation.name << "." << required->attribute.name
+        res << "const auto " << required->getName() << " = db." << Schema::toCppName(required->relation.name) << "." << Schema::toCppName(required->attribute.name)
             << "[i];\n";
     }
 
