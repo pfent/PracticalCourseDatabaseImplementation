@@ -13,16 +13,27 @@ Printer::~Printer() {
 
 std::string Printer::consume (Operator&) {
     stringstream res;
-
     for (const auto& field : fields) {
         res << "cout << " << field->getName() << ";\n";
     }
 
+    res << "}\n";
     return res.str();
 }
 
 std::string Printer::produce() {
-    return input.produce();
+    stringstream res;
+    res << "#pragma once\n"
+            "\n"
+            "#include <unordered_map>\n"
+            "#include <tuple>\n"
+            "#include \"Types.h\"\n"
+            "#include \"Database.h\"\n"
+            "\n"
+            "int main() {\n"
+            "auto& db = Database::instance();\n";
+    res << input.produce();
+    return res.str();
 }
 
 std::vector<IU*> Printer::getProduced() {

@@ -21,7 +21,7 @@ string HashJoin::consume(Operator &what) {
         res << "hashTable" << uuid << ".insert();";
     } else if (&what == &right) {
         // get<1>(condition)->getType()
-        res << "TODO for tc in HT.lookup\n";
+        res << "//TODO for tc in HT.lookup\n";
         res << consumer->consume(*this);
     }
 

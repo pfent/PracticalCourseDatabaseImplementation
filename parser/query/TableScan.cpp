@@ -20,8 +20,8 @@ string TableScan::produce() {
     res << "for (size_t i = 0; i < db." << relation.name << ".size; ++i) {\n";
 
     for (const auto &required : getRequired()) {
-        res << "const auto " << relation.name << "_" << required->attribute.name << " = db." << required->attribute.name
-            << ";\n";
+        res << "const auto " << relation.name << "_" << required->attribute.name << " = db." << required->relation.name << "." << required->attribute.name
+            << "[i];\n";
     }
 
     res << consumer->consume(*this);
