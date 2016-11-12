@@ -1,25 +1,28 @@
 #include "HashJoin.h"
-#include <sstream>
+#include <set>
 
 using namespace std;
 
-HashJoin::HashJoin::HashJoin (Operator& left, Operator& right, std::vector<std::tuple<std::string, std::string>> conditions) : left (left), right (right), conditions (conditions) {
-    left.setConsumer (this);
-    right.setConsumer (this);
+HashJoin::HashJoin::HashJoin(Operator &left, Operator &right, std::vector<std::tuple<IU *, IU *>> conditions) : left(
+        left), right(right), conditions(conditions) {
+    left.setConsumer(this);
+    right.setConsumer(this);
 }
 
 HashJoin::~HashJoin() {
     // NOP
 }
 
-string HashJoin::consume (Operator& what) {
+string HashJoin::consume(Operator &what) {
     stringstream res;
 
     if (&what == &left) {
         res << "//TODO: store t in HT;\n";
+        res << "hashTable" << uuid << ".insert();";
     } else if (&what == &right) {
+        // get<1>(condition)->getType()
         res << "TODO for tc in HT.lookup\n";
-        res << consumer->consume (*this);
+        res << consumer->consume(*this);
     }
 
     return res.str();
@@ -27,23 +30,53 @@ string HashJoin::consume (Operator& what) {
 
 std::string HashJoin::produce() {
     stringstream res;
-    res << "auto hashTable = unordered_multimap<TODO>{};\n";
+    res << "auto hashTable" << uuid << " = std::unordered_multimap<";
+    res << "std::tuple<";
+    for_each(conditions.begin(), conditions.end() - 1, [&](auto &condition) {
+        res << get<0>(condition)->getType() << ", ";
+    });
+    res << get<0>(conditions.back())->getType();
+    res << ">, std::tuple<";
+    auto leftResult = getRequiredFor(left.getProduced());
+    for_each(leftResult.begin(), leftResult.end() - 1, [&](auto &r) {
+        res << r->getType() << ",";
+    });
+    res << leftResult.back()->getType();
+    res << ">";
+    res << ">{};\n";
     res << left.produce();
     res << right.produce();
     return res.str();
 }
 
-std::vector<Operator::IU*> HashJoin::getProduced() {
-    vector<Operator::IU*> res;
-    res.insert (res.end(), left.getProduced().begin(), left.getProduced().end());
-    res.insert (res.end(), right.getProduced().begin(), right.getProduced().end());
-    return res;
+std::vector<IU *> HashJoin::getProduced() {
+    set<IU *> res;
+    auto lefts = left.getProduced();
+    auto rights = right.getProduced();
+    res.insert(lefts.begin(), lefts.end());
+    res.insert(rights.begin(), rights.end());
+    return vector<IU *>(res.begin(), res.end());
 }
 
-std::vector<Operator::IU*> HashJoin::getRequired() {
-    vector<Operator::IU*> res;
+std::vector<IU *> HashJoin::getRequired() {
+    set<IU *> res;
     auto transitives = consumer->getRequired();
-    res.insert (res.end(), transitives.begin(), transitives.end());
-    // TODO add conditions
-    return res;
+    res.insert(transitives.begin(), transitives.end());
+    for (auto &condition : conditions) {
+        res.insert(std::get<0>(condition));
+        res.insert(std::get<1>(condition));
+    }
+    return vector<IU *>(res.begin(), res.end());
+}
+
+std::vector<IU *> HashJoin::getRequiredFor(std::vector<IU *> produced) {
+    std::vector<IU *> v1 = produced;
+    std::vector<IU *> v2 = consumer->getRequired();
+    std::sort(v1.begin(), v1.end());
+    std::sort(v2.begin(), v2.end());
+    std::vector<IU *> v_intersection;
+    std::set_intersection(v1.begin(), v1.end(),
+                          v2.begin(), v2.end(),
+                          std::back_inserter(v_intersection));
+    return v_intersection;
 }

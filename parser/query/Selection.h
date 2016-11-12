@@ -4,7 +4,7 @@
 #include <tuple>
 
 struct Selection :  Operator {
-    Selection (Operator& relation, std::vector<std::tuple<std::string, std::string>> conditions);
+    Selection (Operator& relation, std::vector<std::tuple<IU*, std::string>> conditions);
     ~Selection() override;
     std::string produce() override;
     std::string consume (Operator&) override;
@@ -13,7 +13,7 @@ struct Selection :  Operator {
 
 private:
     Operator& input;
-    std::vector<std::tuple<std::string, std::string>> conditions;
+    std::vector<std::tuple<IU*, std::string>> conditions;
 };
 
 #endif // SELECTION_H

@@ -4,7 +4,7 @@
 #include <tuple>
 
 struct HashJoin :  Operator {
-    HashJoin (Operator& left, Operator& right, std::vector<std::tuple<std::string, std::string>> conditions);
+    HashJoin (Operator& left, Operator& right, std::vector<std::tuple<IU*, IU*>> conditions);
     ~HashJoin() override;
     std::string produce() override;
     std::string consume (Operator& what) override;
@@ -14,7 +14,8 @@ struct HashJoin :  Operator {
 private:
     Operator& left;
     Operator& right;
-    std::vector<std::tuple<std::string, std::string>> conditions;
+    std::vector<std::tuple<IU*, IU*>> conditions;
+    std::vector<IU*> getRequiredFor(std::vector<IU*> produced);
 };
 
 #endif // HASHJOIN_H

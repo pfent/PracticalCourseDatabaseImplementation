@@ -3,9 +3,9 @@
 #include <vector>
 #include <string>
 #include "../Schema.hpp"
+#include "InformationUnit.h"
 
 struct Operator {
-    using IU = Schema::Relation::Attribute;
     virtual ~Operator(){};
     virtual std::string produce() = 0;
     virtual std::string consume(Operator& what) = 0;
@@ -17,6 +17,7 @@ struct Operator {
     
 protected:
     Operator* consumer;
+    size_t uuid = rand();
 };
 
 #endif // OPERATOR_H

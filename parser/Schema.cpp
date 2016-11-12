@@ -24,37 +24,6 @@ static std::string type(const Schema::Relation::Attribute& attr) {
     throw;
 }
 
-static std::string cppType(const Schema::Relation::Attribute& attr) {
-    Types::Tag type = attr.type;
-    switch (type) {
-    case Types::Tag::Integer:
-        return "Integer";
-    case Types::Tag::Timestamp:
-        return "Timestamp";
-    case Types::Tag::Numeric: {
-        std::stringstream ss;
-        ss << "Numeric<" << attr.len1 << ", " << attr.len2 << ">";
-        return ss.str();
-    }
-    case Types::Tag::Char: {
-        std::stringstream ss;
-        ss << "Char<" << attr.len1 << ">";
-        return ss.str();
-    }
-    }
-    throw;
-}
-
-static std::string toCppName(const std::string& name) {
-    std::string res;
-    if (name[0] == '\"' && name[name.size() - 1] == '\"') {
-        res = name.substr(1, name.size() - 2);
-    } else {
-        res = name;
-    }
-    return res;
-}
-
 std::string Schema::toString() const {
     std::stringstream out;
     for (const Schema::Relation& rel : relations) {

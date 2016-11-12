@@ -1,5 +1,5 @@
 project(practicalcoursedatabaseimplementation)
-add_executable(query query.cpp Parser.cpp Schema.cpp query/TableScan.cpp query/HashJoin.cpp query/Selection.cpp query/Printer.cpp)
+add_executable(query query.cpp Parser.cpp Schema.cpp query/TableScan.cpp query/HashJoin.cpp query/Selection.cpp query/Printer.cpp query/InformationUnit.h)
 add_executable(parser parser.cpp Parser.cpp Schema.cpp)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wextra -fshow-column -pipe -march=native")
