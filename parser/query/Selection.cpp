@@ -23,9 +23,9 @@ std::string Selection::consume(Operator &) {
     res << "if( ";
 
     for_each(conditions.begin(), conditions.end() - 1, [&](auto& condition) {
-        res << get<0>(condition) << " == " << get<1>(condition) << " && ";
+        res << get<0>(condition)->getName() << " == " << get<1>(condition) << " && ";
     });
-    res << get<0>(conditions.back()) << " == " << get<1>(conditions.back());
+    res << get<0>(conditions.back())->getName() << " == " << get<1>(conditions.back());
     res <<" ) {\n";
 
     res << consumer->consume(*this);

@@ -21,7 +21,7 @@ void task4Query(Schema *schema) {
                                            {customer.getIU("c_w_id"), "1"},
                                            {customer.getIU("c_d_id"), "1"}});
 
-    auto firstHash = HashJoin(customer, order, {{customer.getIU("c_w_id"), order.getIU("o_w_id")},
+    auto firstHash = HashJoin(cSelection, order, {{customer.getIU("c_w_id"), order.getIU("o_w_id")},
                                                 {customer.getIU("c_d_id"), order.getIU("o_d_id")},
                                                 {customer.getIU("c_id"),   order.getIU("o_c_id")}});
     auto secondHash = HashJoin(firstHash, orderline, {{order.getIU("o_w_id"), orderline.getIU("ol_w_id")},
