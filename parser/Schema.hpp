@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <string>
+#include <algorithm>
+#include <stdexcept>
 #include "Types.hpp"
 
 struct Schema {
@@ -26,6 +28,13 @@ struct Schema {
         Relation(const std::string& name) : name(name) {}
     };
     std::vector<Schema::Relation> relations;
+    Schema::Relation& find(const std::string& name) {
+        for(auto& relation : relations) {
+            if(relation.name == name)
+                return relation;
+        }
+        throw std::runtime_error("no such relation " + name);
+    }
     std::string toString() const;
     std::string toCpp() const;
 };
