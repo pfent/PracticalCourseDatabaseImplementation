@@ -17,8 +17,7 @@ std::string Printer::consume(Operator &) {
     for (const auto &field : fields) {
         res << "cout << " << field->getName() << ";\n";
     }
-
-    res << "}\n";
+    res << "cout << endl;";
     return res.str();
 }
 
@@ -32,8 +31,10 @@ std::string Printer::produce() {
             "\n"
             "using namespace std;\n"
             "int main() {\n"
-            "auto& db = Database::instance();\n";
+            "auto& db = Database::instance();\n"
+            "db.importDatabaseFromPath(\"../tbls/\"s);\n";
     res << input.produce();
+    res << "}\n";
     return res.str();
 }
 

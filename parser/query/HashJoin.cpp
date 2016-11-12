@@ -17,7 +17,7 @@ string HashJoin::consume(Operator &what) {
     stringstream res;
 
     if (&what == &left) {
-        res << "hashTable" << uuid << ".emplace(";
+        res << "hashTable" << uuid << ".insert({";
         res << "{";
         for_each(conditions.begin(), conditions.end() - 1, [&](auto &condition) {
             res << get<0>(condition)->getName() << ", ";
@@ -30,7 +30,7 @@ string HashJoin::consume(Operator &what) {
         });
         res << leftResult.back()->getName();
         res << "}";
-        res << ");\n";
+        res << "});\n";
     } else if (&what == &right) {
         res << "auto range = hashTable" << uuid << ".equal_range({";
         for_each(conditions.begin(), conditions.end() - 1, [&](auto &condition) {
@@ -38,7 +38,12 @@ string HashJoin::consume(Operator &what) {
         });
         res << get<1>(conditions.back())->getName();
         res << "});\n"
-                "for_each(range.first, range.second, [&]{";
+                "for_each(range.first, range.second, [&](auto& elem){\n";
+        auto leftResult = getRequiredFor(left.getProduced());
+        for (size_t i = 0; i < leftResult.size(); ++i) {
+            res << leftResult[i]->getType() << " " << leftResult[i]->getName() << " = get<" << i
+                << ">(get<1>(elem));\n";
+        }
         res << consumer->consume(*this);
         res << "});\n";
     }
