@@ -3,3 +3,4 @@
 build/
 buildRelease/
 Database.h
+query.cpp
