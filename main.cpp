@@ -15,7 +15,7 @@ using namespace std;
 #ifdef NDEBUG
 constexpr auto iterations = 1'000'000;
 #else
-constexpr auto iterations = 10000;
+constexpr auto iterations = 100000;
 #endif //NDEBUG
 
 static void runQuery();
@@ -44,9 +44,6 @@ int main() {
     sa.sa_flags = 0;
     sa.sa_handler = SIGCHLD_handler;
     sigaction(SIGCHLD, &sa, NULL);
-
-    //    cout << "Press enter to continue …" << endl;
-    //    cin.ignore();
 
     cout << "Running transactions …" << endl;
     const auto start = chrono::steady_clock::now();
@@ -87,7 +84,7 @@ static void runQuery() {
     constexpr int iterations = 10;
     for (int i = 0; i < iterations; ++i) {
         const auto start = chrono::steady_clock::now();
-        printSum = joinQuery();
+        printSum = customHashTblJoinQuery();
         const auto end = chrono::steady_clock::now();
         executionTime += chrono::duration<double, milli>(end - start).count();
     }

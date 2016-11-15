@@ -10,4 +10,6 @@ void oltp(Timestamp now);
 
 Numeric<12, 4> joinQuery();
 
+Numeric<12, 4> customHashTblJoinQuery();
+
 #endif //NEWORDERRANDOM_H
