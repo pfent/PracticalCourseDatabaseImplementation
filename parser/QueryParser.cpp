@@ -192,6 +192,18 @@ string Query::build() {
             IULookup[attr.name] = tablescans.back().getIU(attr.name);
         }
     }
+    
+    Operator& algebraTreeRoot = tablescans.front();
+    /* In pseudo code:
+     * for all remaining tablescans
+     *      for all selections, where the LHS is in AlgebraTreeRoot.getProduced
+     *          algebraTreeRoot = selection(algebraTreeRoot, selection)
+     *      for all joinPredicates, where LHS is in AlgebraTreeRoot.getProduced
+     *                              AND RHS is in current tablescan
+     *          algebraTreeRoot = HashJoin(algebraTreeRoot, tablescan, joinPredicates)
+     * result = Printer(algebraTreeRoot, projections)
+     * return result.produce()
+     */
     if (joinPredicates.size() > 0 || selections.size() > 0) {
         res << "\nWHERE ";
         for (auto& predicate : joinPredicates) {
