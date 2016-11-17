@@ -1,9 +1,8 @@
 cmake_minimum_required(VERSION 2.6)
 project(practicalcoursedatabaseimplementation)
 
-add_executable(practicalcoursedatabaseimplementation main.cpp Types.cpp neworderrandom.cpp tpc_c.cpp)
-add_executable(unitTest test.cpp Types.cpp neworderrandom.cpp tpc_c.cpp)
-add_executable(queryh4 query.cpp Types.cpp)
+add_executable(practicalcoursedatabaseimplementation main.cpp Types.cpp parser/Parser.cpp parser/QueryParser.cpp)
+#add_executable(queryh4 query.cpp Types.cpp)
 add_subdirectory(parser)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wextra -fshow-column -pipe -march=native")
