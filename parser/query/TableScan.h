@@ -6,7 +6,7 @@
 #include <vector>
 
 struct TableScan : Operator {
-    TableScan (Schema::Relation& relation);
+    TableScan (const Schema::Relation& relation);
     ~TableScan() override;
     std::string produce() override;
     std::string consume (Operator& what) override;

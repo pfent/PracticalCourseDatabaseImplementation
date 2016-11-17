@@ -5,13 +5,13 @@
 #include <string>
 #include <memory>
 #include <sstream>
+#include <unordered_map>
 #include "Schema.hpp"
 
 class QueryParserError : std::exception {
     std::string msg;
-    unsigned line;
 public:
-    QueryParserError(unsigned line, const std::string& m) : msg(m), line(line) {}
+    QueryParserError(const std::string& m) : msg(m) {}
     ~QueryParserError() throw() {}
     const char* what() const throw() {
         return msg.c_str();
@@ -24,13 +24,15 @@ struct Query {
     using Selection = std::tuple<std::string, std::string>;
     using Predicate = std::tuple<std::string, std::string>;
 
+    const Schema& schema;
+    Query(const Schema& schema) : schema(schema){}
     std::vector<Projection> projections;
     std::vector<Relation> relations;
     std::vector<Predicate> selections;
     std::vector<Predicate> joinPredicates;
 
     std::string build();
-    void verify(const Schema& schema); // might throw exception
+    void verify(); // might throw exception
 };
 
 struct QueryParser {

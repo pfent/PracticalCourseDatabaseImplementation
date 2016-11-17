@@ -4,7 +4,7 @@
 
 using namespace std;
 
-TableScan::TableScan(Schema::Relation &relation) : relation(relation) {
+TableScan::TableScan(const Schema::Relation &relation) : relation(relation) {
     for (auto &a : relation.attributes) {
         ius.push_back({relation, a});
     }

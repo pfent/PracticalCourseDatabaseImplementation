@@ -1,9 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(practicalcoursedatabaseimplementation)
 
-add_executable(practicalcoursedatabaseimplementation main.cpp Types.cpp parser/Parser.cpp parser/QueryParser.cpp)
-#add_executable(queryh4 query.cpp Types.cpp)
-add_subdirectory(parser)
+add_executable(practicalcoursedatabaseimplementation main.cpp Types.cpp parser/Parser.cpp parser/QueryParser.cpp parser/query/TableScan.cpp)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wextra -fshow-column -pipe -march=native")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb3 -O0 -DDEBUG -fsanitize=undefined -fsanitize=address -fsanitize=leak")

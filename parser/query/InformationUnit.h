@@ -5,8 +5,8 @@
 #include <string>
 
 struct IU {
-    Schema::Relation& relation;
-    Schema::Relation::Attribute& attribute;
+    const Schema::Relation& relation;
+    const Schema::Relation::Attribute& attribute;
 
     std::string getName() {
         return Schema::toCppName(relation.name) + "_" + Schema::toCppName(attribute.name);

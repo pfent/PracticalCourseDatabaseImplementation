@@ -35,7 +35,7 @@ struct Schema {
 
     std::vector<Schema::Relation> relations;
 
-    Schema::Relation &find(const std::string &name) {
+    const Schema::Relation &find(const std::string &name) const {
         for (auto &relation : relations) {
             if (relation.name == name)
                 return relation;

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <iterator>
 #include <algorithm>
+#include "query/TableScan.h"
 
 using namespace std;
 
@@ -22,7 +23,7 @@ const char Equals = '=';
 unique_ptr<Query> QueryParser::parse() {
     string token;
     unsigned line = 1;
-    auto q = make_unique<Query>();
+    auto q = make_unique<Query>(schema);
 
     while (input >> token) {
         string::size_type pos;
@@ -37,7 +38,7 @@ unique_ptr<Query> QueryParser::parse() {
         if (token.find("\n") != string::npos)
             ++line;
     }
-    q->verify(schema);
+    q->verify();
     return move(q);
 }
 
@@ -74,19 +75,19 @@ void QueryParser::nextToken(unsigned line, const std::string& token, Query& quer
     std::transform(token.begin(), token.end(), std::back_inserter(tok), ::tolower);
     switch (state) {
     case State::Semicolon:
-        throw QueryParserError(line, "Expected 'EOL' / \\n, found '" + token + "'");
+        throw QueryParserError("Expected 'EOL' / \\n, found '" + token + "'");
     case State::Init:
         if (tok == keyword::Select)
             state = State::Select;
         else
-            throw QueryParserError(line, "Expected 'SELECT', found '" + token + "'");
+            throw QueryParserError("Expected 'SELECT', found '" + token + "'");
         break;
     case State::Select:
         if (isIdentifier(tok)) {
             query.projections.push_back(tok);
             state = State::SelectProjectionName;
         } else {
-            throw QueryParserError(line, "Expected projection attribute, found '" + token + "'");
+            throw QueryParserError("Expected projection attribute, found '" + token + "'");
         }
         break;
     case State::SelectProjectionName:
@@ -95,7 +96,7 @@ void QueryParser::nextToken(unsigned line, const std::string& token, Query& quer
         } else if (tok == keyword::From) {
             state = State::From;
         } else {
-            throw QueryParserError(line, "Expected ',' or 'FROM' found '" + token + "'");
+            throw QueryParserError("Expected ',' or 'FROM' found '" + token + "'");
         }
         break;
     case State::SelectList:
@@ -103,7 +104,7 @@ void QueryParser::nextToken(unsigned line, const std::string& token, Query& quer
             query.projections.push_back(tok);
             state = State::SelectProjectionName;
         } else {
-            throw QueryParserError(line, "Expected projection attribute, found '" + token + "'");
+            throw QueryParserError("Expected projection attribute, found '" + token + "'");
         }
         break;
     case State::From:
@@ -111,7 +112,7 @@ void QueryParser::nextToken(unsigned line, const std::string& token, Query& quer
             query.relations.push_back(tok);
             state = State::FromRelationName;
         } else {
-            throw QueryParserError(line, "Expected table name, found '" + token + "'");
+            throw QueryParserError("Expected table name, found '" + token + "'");
         }
         break;
     case State::FromRelationName:
@@ -122,7 +123,7 @@ void QueryParser::nextToken(unsigned line, const std::string& token, Query& quer
         } else if (tok == keyword::Where) {
             state = State::Where;
         } else {
-            throw QueryParserError(line, "Expected ',' or 'WHERE' found '" + token + "'");
+            throw QueryParserError("Expected ',' or 'WHERE' found '" + token + "'");
         }
         break;
     case State::FromList:
@@ -130,7 +131,7 @@ void QueryParser::nextToken(unsigned line, const std::string& token, Query& quer
             query.relations.push_back(tok);
             state = State::FromRelationName;
         } else {
-            throw QueryParserError(line, "Expected table name, found '" + token + "'");
+            throw QueryParserError("Expected table name, found '" + token + "'");
         }
         break;
     case State::And: // fallthrough
@@ -139,28 +140,28 @@ void QueryParser::nextToken(unsigned line, const std::string& token, Query& quer
             query.joinPredicates.push_back({tok, ""});
             state = State::LeftPredicate;
         } else {
-            throw QueryParserError(line, "Expected predicate attribute, found '" + token + "'");
+            throw QueryParserError("Expected predicate attribute, found '" + token + "'");
         }
         break;
     case State::LeftPredicate:
         if (tok.size() == 1 && tok[0] == literal::Equals) {
             state = State::Equals;
         } else {
-            throw QueryParserError(line, "Expected '=', found '" + token + "'");
+            throw QueryParserError("Expected '=', found '" + token + "'");
         }
         break;
     case State::Equals:
-        if (isIdentifier(tok)) {
-            get<1>(query.joinPredicates.back()) = tok;
-            state = State::RightPredicate;
-        } else if (isConstant(token)) {
+        if (isConstant(token)) {
             auto pred = query.joinPredicates.back();
             query.joinPredicates.pop_back();
             query.selections.push_back(pred);
             get<1>(query.selections.back()) = token;
             state = State::RightPredicate;
+        } else if (isIdentifier(tok)) {
+            get<1>(query.joinPredicates.back()) = tok;
+            state = State::RightPredicate;
         } else {
-            throw QueryParserError(line, "Expected predicate attribute or constant, found '" + token + "'");
+            throw QueryParserError("Expected predicate attribute or constant, found '" + token + "'");
         }
         break;
     case State::RightPredicate:
@@ -169,7 +170,7 @@ void QueryParser::nextToken(unsigned line, const std::string& token, Query& quer
         } else if (tok == keyword::And) {
             state = State::And;
         } else {
-            throw QueryParserError(line, "Expected 'AND' or ';', found '" + token + "'");
+            throw QueryParserError("Expected 'AND' or ';', found '" + token + "'");
         }
         break;
     default:
@@ -178,14 +179,18 @@ void QueryParser::nextToken(unsigned line, const std::string& token, Query& quer
 }
 
 string Query::build() {
+    vector<TableScan> tablescans;
+    unordered_map<std::string, IU*> IULookup;
+
     stringstream res;
-    res << "SELECT ";
-    for (auto& projection : projections) {
-        res << projection << " ";
-    }
     res << "\nFROM ";
     for (auto& relation : relations) {
         res << relation << " ";
+        auto& rel = schema.find(relation);
+        tablescans.emplace_back(rel);
+        for (auto& attr : rel.attributes) {
+            IULookup[attr.name] = tablescans.back().getIU(attr.name);
+        }
     }
     if (joinPredicates.size() > 0 || selections.size() > 0) {
         res << "\nWHERE ";
@@ -196,13 +201,45 @@ string Query::build() {
             res << get<0>(predicate) << " = " << get<1>(predicate) << "\n";
         }
     }
+    res << "SELECT ";
+    for (auto& projection : projections) {
+        res << projection << " ";
+    }
     return res.str();
 }
 
-void Query::verify(const Schema& schema) {
-    (void) schema;
-    // TODO verify table existance
-    // TODO verify projection attribute existance
-    // TODO verify predicate existance (take care with constants!)
+void Query::verify() {
+    std::unordered_map<std::string, std::string> attributeLookup;
+    // verify table existence
+    try {
+        for (auto& relation : relations) {
+            auto r = schema.find(relation); // throws, if table not found
+            for (auto& attribute : r.attributes) {
+                attributeLookup[attribute.name] = relation;
+            }
+        }
+    } catch (runtime_error& e) {
+        throw QueryParserError(string("In 'FROM': ") + e.what());
+    }
+    // verify projection attribute existence
+    for (auto& projection : projections) {
+        if (attributeLookup.find(projection) == attributeLookup.end()) {
+            throw QueryParserError("In 'SELECT': No such attribute '" + projection + "'");
+        }
+    }
+    // verify predicate existence (take care with constants!)
+    for (auto& selection : selections) {
+        if (attributeLookup.find(get<0>(selection)) == attributeLookup.end()) {
+            throw QueryParserError("In 'WHERE': No such attribute '" + get<0>(selection) + "'");
+        }
+    }
+    for (auto& predicate : joinPredicates) {
+        if (attributeLookup.find(get<0>(predicate)) == attributeLookup.end()) {
+            throw QueryParserError("In 'WHERE': No such attribute '" + get<0>(predicate) + "'");
+        }
+        if (attributeLookup.find(get<1>(predicate)) == attributeLookup.end()) {
+            throw QueryParserError("In 'WHERE': No such attribute '" + get<1>(predicate) + "'");
+        }
+    }
 }
 
