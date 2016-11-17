@@ -24,8 +24,8 @@ int main() {
     unique_ptr<Schema> schema = Parser("../schema.sql").parse();
 
     cout << "input a SQL query or finish execution by EOF (^D / Ctrl-D)" << endl;
-    for (string line; getline(cin, line);) {
-        cout << "you entered " << line << endl;
+    cout << ">";
+    for (string line; getline(cin, line); cout << ">") {
         unique_ptr<Query> query;
         try {
             query = QueryParser(*schema, line).parse();

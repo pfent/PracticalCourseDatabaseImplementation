@@ -26,7 +26,8 @@ struct Query {
 
     std::vector<Projection> projections;
     std::vector<Relation> relations;
-    std::vector<Predicate> predicates;
+    std::vector<Predicate> selections;
+    std::vector<Predicate> joinPredicates;
 
     std::string build();
     void verify(const Schema& schema); // might throw exception

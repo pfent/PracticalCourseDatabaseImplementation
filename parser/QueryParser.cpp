@@ -136,7 +136,7 @@ void QueryParser::nextToken(unsigned line, const std::string& token, Query& quer
     case State::And: // fallthrough
     case State::Where:
         if (isIdentifier(tok)) {
-            query.predicates.push_back({tok, ""});
+            query.joinPredicates.push_back({tok, ""});
             state = State::LeftPredicate;
         } else {
             throw QueryParserError(line, "Expected predicate attribute, found '" + token + "'");
@@ -150,8 +150,14 @@ void QueryParser::nextToken(unsigned line, const std::string& token, Query& quer
         }
         break;
     case State::Equals:
-        if (isIdentifier(tok) || isConstant(tok)) {
-            get<1>(query.predicates.back()) = tok;
+        if (isIdentifier(tok)) {
+            get<1>(query.joinPredicates.back()) = tok;
+            state = State::RightPredicate;
+        } else if (isConstant(token)) {
+            auto pred = query.joinPredicates.back();
+            query.joinPredicates.pop_back();
+            query.selections.push_back(pred);
+            get<1>(query.selections.back()) = token;
             state = State::RightPredicate;
         } else {
             throw QueryParserError(line, "Expected predicate attribute or constant, found '" + token + "'");
@@ -181,9 +187,12 @@ string Query::build() {
     for (auto& relation : relations) {
         res << relation << " ";
     }
-    if (predicates.size() > 0) {
-        res << "\nWHERE";
-        for (auto& predicate : predicates) {
+    if (joinPredicates.size() > 0 || selections.size() > 0) {
+        res << "\nWHERE ";
+        for (auto& predicate : joinPredicates) {
+            res << get<0>(predicate) << " = " << get<1>(predicate) << "\n";
+        }
+        for (auto& predicate : selections) {
             res << get<0>(predicate) << " = " << get<1>(predicate) << "\n";
         }
     }
