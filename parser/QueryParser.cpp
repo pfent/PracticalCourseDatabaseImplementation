@@ -181,85 +181,93 @@ void QueryParser::nextToken(unsigned line, const std::string &token, Query &quer
 }
 
 static std::vector<std::tuple<IU *, std::string>>
-getSelectionsForRelation(std::vector<Query::PredicateString> &selections, unordered_map<std::string, IU *> &IULookup,
-                         Operator *op) {
+getSelectionsForRelation(std::vector<Query::PredicateString> &selections, Operator *op) {
     std::vector<std::tuple<IU *, std::string>> conds;
     for (auto &selection : selections) {
-        auto selectionIU = IULookup[get<0>(selection)];
         auto operatorIUs = op->getProduced();
-        if (find(operatorIUs.begin(), operatorIUs.end(), selectionIU) != operatorIUs.end()) {
-            conds.push_back({selectionIU, get<1>(selection)});
+        for (auto iu : operatorIUs) {
+            if (iu->attribute.name == get<0>(selection)) {
+                conds.push_back({iu, get<1>(selection)});
+            }
         }
     }
     for (auto &cond : conds) {
         selections.erase(remove_if(selections.begin(), selections.end(), [&](auto s) {
-            return IULookup[get<0>(s)] == get<0>(cond) && get<1>(s) == get<1>(cond);
+            return get<0>(cond)->attribute.name == get<0>(s);
         }), selections.end());
     }
     return conds;
 }
 
 static std::vector<std::tuple<IU *, IU *>>
-getJoinPredicatesForRelations(std::vector<Query::PredicateString> &joinPredicates,
-                              unordered_map<std::string, IU *> &IULookup, Operator *lhs, Operator *rhs) {
-    std::vector<std::tuple<IU *, IU*>> conds;
+getJoinPredicatesForRelations(std::vector<Query::PredicateString> &joinPredicates, Operator *lhs, Operator *rhs) {
+    std::vector<std::tuple<IU *, IU *>> conds;
     for (auto &predicate : joinPredicates) {
-        auto lhsIU = IULookup[get<0>(predicate)];
-        auto rhsIU = IULookup[get<1>(predicate)];
         auto lhsOperatorIUs = lhs->getProduced();
         auto rhsOperatorIUs = rhs->getProduced();
-        if (find(lhsOperatorIUs.begin(), lhsOperatorIUs.end(), lhsIU) != lhsOperatorIUs.end()
-                && find(rhsOperatorIUs.begin(), rhsOperatorIUs.end(), rhsIU) != rhsOperatorIUs.end()) {
-            conds.push_back({lhsIU, rhsIU});
+        for (auto liu : lhsOperatorIUs) {
+            if (liu->attribute.name == get<0>(predicate)) {
+                for (auto riu : rhsOperatorIUs) {
+                    if (riu->attribute.name == get<1>(predicate)) {
+                        conds.push_back({liu, riu});
+                    }
+                }
+            } else if (liu->attribute.name == get<1>(predicate)) { // the predicate order might be swapped
+                for (auto riu : rhsOperatorIUs) {
+                    if (riu->attribute.name == get<0>(predicate)) {
+                        conds.push_back({liu, riu});
+                    }
+                }
+            }
         }
-    }
-    for (auto &cond : conds) {
-        joinPredicates.erase(remove_if(joinPredicates.begin(), joinPredicates.end(), [&](auto p) {
-            return IULookup[get<0>(p)] == get<0>(cond) && IULookup[get<1>(p)] == get<1>(cond);
-        }), joinPredicates.end());
     }
     return conds;
 }
 
 string Query::build() {
     vector<TableScan> tablescans;
-    unordered_map<std::string, IU *> IULookup;
 
     for (auto &relation : relations) {
         auto &rel = schema.find(relation);
         tablescans.push_back(TableScan(rel));
-        for (auto &attr : rel.attributes) {
-            IULookup[attr.name] = tablescans.back().getIU(attr.name);
-        }
     }
 
     vector<unique_ptr<Operator>> operators;
     stack<Operator *> operatorStack;
     for (size_t i = tablescans.size(); i > 0; --i) { // reverse order, as the stack reverses the order again
-        operatorStack.push(&tablescans[i -1]);
+        auto selectionConditions = getSelectionsForRelation(selections, &tablescans[i - 1]);
+        operators.push_back(make_unique<Selection>(tablescans[i - 1], selectionConditions));
+        operatorStack.push(operators.back().get());
     }
     while (operatorStack.size() >= 2) {
         auto lhs = operatorStack.top();
         operatorStack.pop();
         auto rhs = operatorStack.top();
         operatorStack.pop();
-        auto lhsSelectionConditions = getSelectionsForRelation(selections, IULookup, lhs);
-        auto rhsSelectionConditions = getSelectionsForRelation(selections, IULookup, rhs);
+        auto lhsSelectionConditions = getSelectionsForRelation(selections, lhs);
+        auto rhsSelectionConditions = getSelectionsForRelation(selections, rhs);
 
         operators.push_back(make_unique<Selection>(*lhs, lhsSelectionConditions));
         Operator *lhsSelected = operators.back().get();
         operators.push_back(make_unique<Selection>(*rhs, rhsSelectionConditions));
         Operator *rhsSelected = operators.back().get();
 
-        auto predicates = getJoinPredicatesForRelations(joinPredicates, IULookup, lhsSelected, rhsSelected);
+        auto predicates = getJoinPredicatesForRelations(joinPredicates, lhsSelected, rhsSelected);
 
+        if (predicates.size() == 0) {
+            throw QueryParserError("No join predicate, would need a cross product!");
+        }
         operators.push_back(make_unique<HashJoin>(*lhsSelected, *rhsSelected, predicates));
         operatorStack.push(operators.back().get());
     }
 
-    auto projs = vector<IU*>();
-    for(auto& projection : projections)  {
-        projs.push_back(IULookup[projection]);
+    auto projs = vector<IU *>();
+    for (auto &projection : projections) {
+        for(auto iu : operatorStack.top()->getProduced()) {
+            if(iu->attribute.name == projection) {
+                projs.push_back(iu);
+            }
+        }
     }
     auto result = Printer(*operatorStack.top(), projs);
     return result.produce();

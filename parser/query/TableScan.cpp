@@ -36,8 +36,8 @@ string TableScan::consume(Operator &) {
 
 std::vector<IU *> TableScan::getProduced() {
     std::vector<IU *> res;
-    for (auto &iu : ius) {
-        res.push_back(&iu);
+    for(size_t i = 0; i < ius.size(); ++i) {
+        res.push_back(&ius[i]);
     }
     return res;
 }
@@ -57,9 +57,9 @@ std::vector<IU *> TableScan::getRequired() {
 }
 
 IU *TableScan::getIU(const std::string &what) {
-    for (auto &iu : ius) {
-        if (iu.attribute.name == what) {
-            return &iu;
+    for(size_t i = 0; i < ius.size(); ++i) {
+        if (ius[i].attribute.name == what) {
+            return &ius[i];
         }
     }
     throw runtime_error {"No such field: " + what};
