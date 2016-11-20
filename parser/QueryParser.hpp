@@ -19,17 +19,17 @@ public:
 };
 
 struct Query {
-    using Projection = std::string;
-    using Relation = std::string;
-    using Selection = std::tuple<std::string, std::string>;
-    using Predicate = std::tuple<std::string, std::string>;
+    using ProjectionString = std::string;
+    using RelationString = std::string;
+    using SelectionString = std::tuple<std::string, std::string>;
+    using PredicateString = std::tuple<std::string, std::string>;
 
     const Schema& schema;
     Query(const Schema& schema) : schema(schema){}
-    std::vector<Projection> projections;
-    std::vector<Relation> relations;
-    std::vector<Predicate> selections;
-    std::vector<Predicate> joinPredicates;
+    std::vector<ProjectionString> projections;
+    std::vector<RelationString> relations;
+    std::vector<PredicateString> selections;
+    std::vector<PredicateString> joinPredicates;
 
     std::string build();
     void verify(); // might throw exception
