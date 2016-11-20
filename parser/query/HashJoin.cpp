@@ -3,7 +3,7 @@
 
 using namespace std;
 
-HashJoin::HashJoin::HashJoin(Operator &left, Operator &right, std::vector<std::tuple<IU *, IU *>> conditions) : left(
+HashJoin::HashJoin(Operator &left, Operator &right, std::vector<std::tuple<IU *, IU *>> conditions) : left(
         left), right(right), conditions(conditions) {
     left.setConsumer(this);
     right.setConsumer(this);

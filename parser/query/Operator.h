@@ -17,7 +17,12 @@ struct Operator {
     
 protected:
     Operator* consumer;
-    size_t uuid = rand();
+    size_t uuid = getUuid();
+private:
+    static size_t getUuid() {
+        static size_t opUuid = 0;
+        return opUuid++;
+    }
 };
 
 #endif // OPERATOR_H

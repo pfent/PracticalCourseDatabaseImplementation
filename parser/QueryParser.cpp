@@ -236,28 +236,25 @@ string Query::build() {
     stack<Operator *> operatorStack;
     for (size_t i = tablescans.size(); i > 0; --i) { // reverse order, as the stack reverses the order again
         auto selectionConditions = getSelectionsForRelation(selections, &tablescans[i - 1]);
-        operators.push_back(make_unique<Selection>(tablescans[i - 1], selectionConditions));
-        operatorStack.push(operators.back().get());
+        if (selectionConditions.size() > 0) {
+            operators.push_back(make_unique<Selection>(tablescans[i - 1], selectionConditions));
+            operatorStack.push(operators.back().get());
+        } else {
+            operatorStack.push(&tablescans[i - 1]);
+        }
     }
     while (operatorStack.size() >= 2) {
         auto lhs = operatorStack.top();
         operatorStack.pop();
         auto rhs = operatorStack.top();
         operatorStack.pop();
-        auto lhsSelectionConditions = getSelectionsForRelation(selections, lhs);
-        auto rhsSelectionConditions = getSelectionsForRelation(selections, rhs);
 
-        operators.push_back(make_unique<Selection>(*lhs, lhsSelectionConditions));
-        Operator *lhsSelected = operators.back().get();
-        operators.push_back(make_unique<Selection>(*rhs, rhsSelectionConditions));
-        Operator *rhsSelected = operators.back().get();
-
-        auto predicates = getJoinPredicatesForRelations(joinPredicates, lhsSelected, rhsSelected);
+        auto predicates = getJoinPredicatesForRelations(joinPredicates, lhs, rhs);
 
         if (predicates.size() == 0) {
             throw QueryParserError("No join predicate, would need a cross product!");
         }
-        operators.push_back(make_unique<HashJoin>(*lhsSelected, *rhsSelected, predicates));
+        operators.push_back(make_unique<HashJoin>(*lhs, *rhs, predicates));
         operatorStack.push(operators.back().get());
     }
 
