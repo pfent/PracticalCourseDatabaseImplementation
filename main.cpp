@@ -20,7 +20,7 @@ static void loadDatabase(const string &location) {
     const auto start = chrono::steady_clock::now();
     db.importDatabaseFromPath(location);
     const auto end = chrono::steady_clock::now();
-    cout << "took " << chrono::duration<double, milli>(end - start).count() << "ms\n" << endl;
+    cout << "took " << chrono::duration<double, milli>(end - start).count() << "ms" << endl;
 }
 
 static void chdirToTmp() {
@@ -125,13 +125,13 @@ int main() {
         cout << "compiling… " << flush;
         compileSo("query.cpp", "query.so");
         const auto endCompile = chrono::steady_clock::now();
-        cout << "took " << chrono::duration<double, milli>(endCompile - startCompile).count() << "ms\n" << endl;
+        cout << "took " << chrono::duration<double, milli>(endCompile - startCompile).count() << "ms" << endl;
 
         // Probably also adapt the compilation for main.cpp
         const auto startExecute = chrono::steady_clock::now();
         executeSo("./query.so", "dynamicQuery");
         const auto endExecute = chrono::steady_clock::now();
-        cout << "took " << chrono::duration<double, milli>(endExecute - startExecute).count() << "ms\n" << endl;
+        cout << "took " << chrono::duration<double, milli>(endExecute - startExecute).count() << "ms" << endl;
     }
 
     return 0;

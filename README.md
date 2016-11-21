@@ -5,33 +5,33 @@
 mkdir buildRelease
 cd buildRelease
 cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_BUILD_TYPE=Release ..
-# First, generate code according for the database
+# Parse the schema to generate code for the Database
 cd parser
 make
 ./parser ../../schema.sql > ../../Database.h
-./query ../../schema.sql > ../../query.cpp
 cd ..
 make
 ```
 
+Please also note, that the database expects a database dump to read in `tbls`. So please copy your `tpcc_*.tbl` to the `tbl` directory.
+
 # Execute with
 ```bash
-./queryh4
-```
-
-or run a unit test with
-```bash
-./unitTest
+rlwrap ./practicalcoursedatabaseimplementation
 ```
 
 # Sample output
 ```
-wLzEBrpKbbfeb01 PRIABLEOUGHT    1       0.00
-wLzEBrpKbbfeb01 PRIABLEOUGHT    1       0.00
-wLzEBrpKbbfeb01 PRIABLEOUGHT    1       0.00
-wLzEBrpKbbfeb01 PRIABLEOUGHT    1       0.00
-wLzEBrpKbbfeb01 PRIABLEOUGHT    1       0.00
-wLzEBrpKbbfeb01 PRIABLEOUGHT    1       0.00
-wLzEBrpKbbfeb01 PRIABLEOUGHT    1       0.00
-wLzEBrpKbbfeb01 PRIABLEOUGHT    1       0.00
+Initializing database… took 4352.37ms
+working directory: /tmp/tmp.FqdEcL9AC1
+input a SQL query or finish execution by EOF (^D / Ctrl-D)
+> select w_id from warehouse;
+compiling… took 1394.32ms
+4
+1
+5
+2
+3
+took 0.083286ms
+> ^D
 ```
