@@ -7,14 +7,15 @@
 #include "parser/Schema.hpp"
 #include "parser/QueryParser.hpp"
 #include <unistd.h>
+#include <dlfcn.h>
 #include <stdlib.h>
 
 using namespace std;
 
-auto& db = Database::instance();
+auto &db = Database::instance();
 string headers[] = {"Database.h", "hashfunctions.h", "Types.h"};
 
-static void loadDatabase(const string& location) {
+static void loadDatabase(const string &location) {
     cout << "Initializing database… " << flush;
     const auto start = chrono::steady_clock::now();
     db.importDatabaseFromPath(location);
@@ -40,8 +41,8 @@ static void chdirToTmp() {
     tmpdir = tmpdir.substr(0, tmpdir.size() - 1); // trailing newline. ugh
     cout << "working directory: " << tmpdir << endl;
 
-    for (const auto& header : headers) {
-        auto src = ifstream("../" + header, ios::binary);
+    for (const auto &header : headers) {
+        const auto src = ifstream("../" + header, ios::binary);
         auto dst = ofstream(tmpdir + "/" + header, ios::binary);
         dst << src.rdbuf();
     }
@@ -60,11 +61,11 @@ static void writeToFile(string filename, string text) {
 }
 
 static void compileSo(string filename, string soName) {
-    const string compileCommand = "g++ -O3 -std=c++14 -g " + filename + " -fPIC -shared -o " + soName;
+    const string compileCommand = "g++ -O3 -std=c++14 -march=native -g " + filename + " -fPIC -shared -o " + soName;
     {
         char buffer[512];
         string errormsg = "";
-        FILE* pipe(popen(compileCommand.c_str(), "r"));
+        FILE *pipe(popen(compileCommand.c_str(), "r"));
         if (!pipe) {
             perror("popen()");
             throw runtime_error("popen() failed!");
@@ -80,6 +81,27 @@ static void compileSo(string filename, string soName) {
     }
 }
 
+void executeSo(string filename, string functionname) {
+    void *handle = dlopen(filename.c_str(), RTLD_NOW);
+    if (!handle) {
+        cerr << "dlopen() failed: " << dlerror() << endl;
+        throw runtime_error("dlopen() returned NULL");
+    }
+    auto fn = reinterpret_cast<void (*)()>(dlsym(handle, functionname.c_str()));
+    if (!fn) {
+        cerr << "dlsym() failed: " << dlerror() << endl;
+        throw runtime_error("dlsym() returned NULL");
+    }
+
+    // Call the function. Directly prints to stdout
+    fn();
+
+    if (dlclose(handle)) {
+        cerr << "dlclose() failed: " << dlerror() << endl;
+        throw runtime_error("dlclose() failed");
+    }
+}
+
 int main() {
     loadDatabase("../tbls/");
     unique_ptr<Schema> schema = Parser("../schema.sql").parse();
@@ -89,22 +111,27 @@ int main() {
     cout << "input a SQL query or finish execution by EOF (^D / Ctrl-D)" << endl;
     cout << "> ";
     for (string line; getline(cin, line); cout << "> ") {
+        const auto startCompile = chrono::steady_clock::now();
         string result;
         try {
             auto query = QueryParser(*schema, line).parse();
             result = query->build();
-        } catch (QueryParserError& ex) {
+        } catch (QueryParserError &ex) {
             cerr << ex.what() << endl;
             continue;
         }
 
         writeToFile("query.cpp", result);
+        cout << "compiling… " << flush;
         compileSo("query.cpp", "query.so");
-        
+        const auto endCompile = chrono::steady_clock::now();
+        cout << "took " << chrono::duration<double, milli>(endCompile - startCompile).count() << "ms\n" << endl;
+
         // Probably also adapt the compilation for main.cpp
-        // TODO: dlopen query.so
-        // TODO: dlsym the dynamicQuery
-        // TODO: don't forget to dlclose the handle
+        const auto startExecute = chrono::steady_clock::now();
+        executeSo("./query.so", "dynamicQuery");
+        const auto endExecute = chrono::steady_clock::now();
+        cout << "took " << chrono::duration<double, milli>(endExecute - startExecute).count() << "ms\n" << endl;
     }
 
     return 0;

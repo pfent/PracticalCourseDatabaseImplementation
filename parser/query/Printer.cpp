@@ -23,16 +23,15 @@ std::string Printer::consume(Operator &) {
 
 std::string Printer::produce() {
     stringstream res;
-    res << "#include <unordered_map>\n"
-            "#include \"Types.h\"\n"
+    res <<  "#include \"Types.h\"\n"
             "#include \"Database.h\"\n"
-            "#include <iostream>\n"
             "#include <algorithm>\n"
+            "#include <iostream>\n"
+            "#include <unordered_map>\n"
             "\n"
             "using namespace std;\n"
-            "int main() {\n"
-            "auto& db = Database::instance();\n"
-            "db.importDatabaseFromPath(\"../tbls/\");\n";
+            "extern \"C\" void dynamicQuery() {\n"
+            "auto& db = Database::instance();\n";
     res << input.produce();
     res << "}\n";
     return res.str();
