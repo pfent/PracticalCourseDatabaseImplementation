@@ -17,7 +17,7 @@ std::string Printer::consume(Operator &) {
     for (const auto &field : fields) {
         res << "cout << " << field->getName() << " << '\\t';\n";
     }
-    res << "cout << endl;";
+    res << "cout << '\\n';";
     return res.str();
 }
 
@@ -33,6 +33,7 @@ std::string Printer::produce() {
             "extern \"C\" void dynamicQuery() {\n"
             "auto& db = Database::instance();\n";
     res << input.produce();
+    res << "cout << flush;";
     res << "}\n";
     return res.str();
 }

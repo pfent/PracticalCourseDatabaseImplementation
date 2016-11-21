@@ -61,7 +61,7 @@ static void writeToFile(string filename, string text) {
 }
 
 static void compileSo(string filename, string soName) {
-    const string compileCommand = "g++ -O3 -std=c++14 -march=native -g " + filename + " -fPIC -shared -o " + soName;
+    const string compileCommand = "g++ -O3 -std=c++14 -flto -march=native -pipe " + filename + " -fPIC -shared -o " + soName;
     {
         char buffer[512];
         string errormsg = "";

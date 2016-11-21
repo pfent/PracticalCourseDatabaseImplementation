@@ -156,10 +156,12 @@ void QueryParser::nextToken(unsigned line, const std::string &token, Query &quer
             break;
         case State::Equals:
             if (isConstant(token)) {
+                tok = token;
+                replace(tok.begin(), tok.end(), '\'', '"'); // correct string literals
                 auto pred = query.joinPredicates.back();
                 query.joinPredicates.pop_back();
                 query.selections.push_back(pred);
-                get<1>(query.selections.back()) = token;
+                get<1>(query.selections.back()) = tok;
                 state = State::RightPredicate;
             } else if (isIdentifier(tok)) {
                 get<1>(query.joinPredicates.back()) = tok;
